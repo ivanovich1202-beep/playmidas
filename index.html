@@ -13,7 +13,7 @@
   <!-- Firebase SDKs -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged }
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
       from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, setDoc, getDoc }
       from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
@@ -31,7 +31,6 @@
     const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
     const db = getFirestore(app);
-    const googleProvider = new GoogleAuthProvider();
 
     // Expose to global scope for use in inline scripts
     window._fb = { auth, db, googleProvider, doc, setDoc, getDoc,
@@ -702,8 +701,7 @@
     <input class="auth-input" id="authEmail" type="email" placeholder="Email" autocomplete="email" />
     <input class="auth-input" id="authPassword" type="password" placeholder="Contraseña" autocomplete="current-password" />
     <button class="auth-btn" onclick="fbEmailAuth()">▶ ENTRAR</button>
-    <div class="auth-divider">— o —</div>
-    <button class="auth-btn google" onclick="fbGoogleAuth()">🔵 Continuar con Google</button>
+
     
     <div class="auth-switch" id="authSwitch">¿No tienes cuenta? <span onclick="toggleAuthMode()">Regístrate</span></div>
   </div>
