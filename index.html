@@ -1068,7 +1068,6 @@ function toggleAuthMode() {
 
 async function fbEmailAuth() {
   const auth = window._auth;
-  if (!auth) { showToast('Firebase cargando...', 'error'); return; }
   const email = document.getElementById('authEmail').value.trim();
   const pass  = document.getElementById('authPassword').value;
   const errEl = document.getElementById('authError');
@@ -1141,7 +1140,6 @@ function updateAuthUI(user) {
 }
 
 function initFirebaseAuth() {
-  if (!window._auth) { setTimeout(initFirebaseAuth, 200); return; }
   window._auth.onAuthStateChanged(async (user) => {
     currentUser = user;
     updateAuthUI(user);
@@ -1871,8 +1869,8 @@ async function saveWalletAddress() {
 // ============================================================
 loadState();
 updateUI();
-// Init Firebase auth after module scripts load
-setTimeout(initFirebaseAuth, 500);
+// Init Firebase auth
+initFirebaseAuth();
 </script>
 </body>
 </html>
