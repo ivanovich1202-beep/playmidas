@@ -10,6 +10,34 @@
   <meta property="og:description" content="Juega y gana tokens MIDAS (MDS). Play-to-Earn en BNB Chain.">
   <meta name="theme-color" content="#050a0f">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <!-- Firebase SDKs -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged }
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, setDoc, getDoc }
+      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyB2ghfcetumyI0sAr1jKFgGGp7a-JHAAkY",
+      authDomain: "playmidas-391d3.firebaseapp.com",
+      projectId: "playmidas-391d3",
+      storageBucket: "playmidas-391d3.firebasestorage.app",
+      messagingSenderId: "787818165756",
+      appId: "1:787818165756:web:e8e554866e8537e4b56e79",
+      measurementId: "G-PF7YC39B88"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    // Expose to global scope for use in inline scripts
+    window._fb = { auth, db, googleProvider, doc, setDoc, getDoc,
+      createUserWithEmailAndPassword, signInWithEmailAndPassword,
+      signInWithPopup, signOut, onAuthStateChanged };
+  </script>
   <style>
     :root {
       --bg:        #050a0f;
@@ -512,6 +540,147 @@
       border-top:1px solid var(--border);
     }
 
+
+
+    /* LAUNCH BANNER */
+    .launch-banner {
+      background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(0,212,255,0.06));
+      border: 1px solid rgba(255,215,0,0.3);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 16px;
+      text-align: center;
+    }
+    .launch-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.65rem; color: var(--gold);
+      letter-spacing: 2px; text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .launch-countdown {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.4rem; font-weight: 900;
+      color: var(--gold);
+      text-shadow: 0 0 20px rgba(255,215,0,0.5);
+      letter-spacing: 2px;
+    }
+    .launch-sub {
+      font-size: 0.7rem; color: var(--text2);
+      font-family: 'Share Tech Mono', monospace;
+      margin-top: 4px;
+    }
+    .launch-sub span { color: var(--accent2); }
+
+    /* WITHDRAW PANEL */
+    .withdraw-panel {
+      background: var(--panel);
+      border: 1px solid rgba(255,215,0,0.2);
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 12px;
+    }
+    .withdraw-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.8rem; color: var(--gold);
+      margin-bottom: 14px; letter-spacing: 1px;
+    }
+    .withdraw-row {
+      display: flex; justify-content: space-between;
+      align-items: center; margin-bottom: 10px;
+    }
+    .withdraw-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.72rem; color: var(--text2);
+    }
+    .withdraw-value {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.9rem; font-weight: 700; color: var(--accent2);
+    }
+    .withdraw-progress-wrap { margin: 12px 0; }
+    .withdraw-progress-bar {
+      height: 8px; background: var(--bg3);
+      border-radius: 4px; overflow: hidden; margin-top: 6px;
+    }
+    .withdraw-progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), #ff8800);
+      border-radius: 4px; transition: width 0.3s;
+    }
+    .wallet-register-input {
+      width: 100%; background: var(--bg3);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem; padding: 10px 12px;
+      margin: 10px 0 8px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .wallet-register-input:focus { border-color: var(--gold); }
+    .wallet-register-btn {
+      width: 100%; font-family: 'Orbitron', monospace;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 1px;
+      background: linear-gradient(135deg, var(--gold), #aa7700);
+      color: #000; border: none; cursor: pointer;
+      padding: 11px; border-radius: 8px; transition: all 0.2s;
+    }
+    .wallet-register-btn:hover { transform: translateY(-1px); }
+    .wallet-saved-badge {
+      background: rgba(0,255,136,0.08);
+      border: 1px solid rgba(0,255,136,0.25);
+      border-radius: 8px; padding: 10px 14px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.72rem; color: var(--accent2);
+      text-align: center; margin-top: 8px;
+      word-break: break-all;
+    }
+
+    /* AUTH MODAL */
+    .auth-overlay {
+      position:fixed; inset:0; z-index:500;
+      background: rgba(0,0,0,0.75);
+      display:flex; align-items:center; justify-content:center;
+      padding:20px;
+    }
+    .auth-modal {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius:16px;
+      padding:28px 24px;
+      width:100%; max-width:360px;
+    }
+    .auth-title {
+      font-family:'Orbitron',monospace;
+      font-size:1rem; font-weight:700;
+      color:var(--accent); text-align:center;
+      margin-bottom:20px; letter-spacing:2px;
+    }
+    .auth-input {
+      width:100%; background:var(--bg3);
+      border:1px solid var(--border); border-radius:8px;
+      color:var(--text); font-family:'Share Tech Mono',monospace;
+      font-size:0.85rem; padding:10px 14px;
+      margin-bottom:10px; outline:none;
+      transition: border-color 0.2s;
+    }
+    .auth-input:focus { border-color:var(--accent); }
+    .auth-btn {
+      width:100%; font-family:'Orbitron',monospace;
+      font-size:0.75rem; font-weight:700; letter-spacing:1px;
+      background:linear-gradient(135deg,var(--accent),#006688);
+      color:#000; border:none; cursor:pointer;
+      padding:11px; border-radius:8px;
+      margin-bottom:8px; transition:all 0.2s;
+    }
+    .auth-btn:hover { transform:translateY(-1px); box-shadow:var(--glow); }
+    .auth-btn.google { background:linear-gradient(135deg,#4285F4,#2a5db0); color:#fff; }
+    .auth-btn.secondary { background:transparent; color:var(--text2); border:1px solid var(--border); font-size:0.7rem; }
+    .auth-divider { text-align:center; color:var(--text2); font-size:0.7rem; font-family:'Share Tech Mono',monospace; margin:8px 0; }
+    .auth-switch { text-align:center; color:var(--text2); font-size:0.72rem; font-family:'Share Tech Mono',monospace; margin-top:12px; cursor:pointer; }
+    .auth-switch span { color:var(--accent); text-decoration:underline; }
+    .auth-error { color:var(--red); font-size:0.72rem; font-family:'Share Tech Mono',monospace; text-align:center; margin-bottom:8px; min-height:16px; }
+    .login-btn { font-family:'Share Tech Mono',monospace; font-size:0.72rem; letter-spacing:1px; background:transparent; color:var(--accent); border:1px solid var(--accent); padding:6px 12px; border-radius:6px; cursor:pointer; transition:all 0.2s; }
+    .login-btn:hover { background:rgba(0,212,255,0.1); }
+    .user-display { font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--text2); max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
     /* HIDDEN */
     .hidden { display:none !important; }
 
@@ -524,11 +693,30 @@
 </head>
 <body>
 
+<!-- AUTH MODAL -->
+<div class="auth-overlay" id="authOverlay">
+  <div class="auth-modal">
+    <div class="auth-title" id="authTitle">INICIAR SESIÓN</div>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:0.68rem;color:var(--text2);text-align:center;margin-bottom:12px;line-height:1.5">Regístrate gratis para jugar y<br>acumular tokens MDS 🚀</div>
+    <div class="auth-error" id="authError"></div>
+    <input class="auth-input" id="authEmail" type="email" placeholder="Email" autocomplete="email" />
+    <input class="auth-input" id="authPassword" type="password" placeholder="Contraseña" autocomplete="current-password" />
+    <button class="auth-btn" onclick="fbEmailAuth()">▶ ENTRAR</button>
+    <div class="auth-divider">— o —</div>
+    <button class="auth-btn google" onclick="fbGoogleAuth()">🔵 Continuar con Google</button>
+    
+    <div class="auth-switch" id="authSwitch">¿No tienes cuenta? <span onclick="toggleAuthMode()">Regístrate</span></div>
+  </div>
+</div>
+
 <header>
   <div class="logo">PLAY<span>MIDAS</span></div>
   <div class="header-right">
     <div class="mds-balance" id="headerBalance">0.0000 MDS</div>
-    <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">CONNECT</button>
+    <div id="authHeaderArea">
+      <button class="login-btn" onclick="openAuthModal()">LOGIN</button>
+    </div>
+    <button class="wallet-btn" id="walletBtn" onclick="showToast('Disponible en el lanzamiento del token 🚀','')" title="Disponible en el lanzamiento">🚀 LAUNCH</button>
   </div>
 </header>
 
@@ -549,6 +737,13 @@
     </div>
   </div>
 
+  <!-- LAUNCH BANNER -->
+  <div class="launch-banner">
+    <div class="launch-label">🚀 Token MDS — Lanzamiento en</div>
+    <div class="launch-countdown" id="launchCountdown">--d --h --m --s</div>
+    <div class="launch-sub">Acumula MDS ahora · Retira el día del lanzamiento · Mínimo <span>5 MDS</span></div>
+  </div>
+
   <!-- REWARD NOTICE -->
   <div class="reward-notice">
     <span>⚡</span>
@@ -563,6 +758,7 @@
     <button class="tab-btn" onclick="showTab('spin')">🎰 Fortune</button>
     <button class="tab-btn" onclick="showTab('store')">🛒 Tienda</button>
     <button class="tab-btn" onclick="showTab('info')">📊 Token</button>
+    <button class="tab-btn" onclick="showTab('withdraw')">💸 Retiro</button>
   </div>
 
   <!-- ===== GAME 1: MIDAS CLICKER ===== -->
@@ -798,6 +994,44 @@
     </div>
   </div>
 
+  <!-- ===== WITHDRAW ===== -->
+  <div id="game-withdraw" class="hidden">
+    <div class="launch-banner" style="margin-bottom:12px">
+      <div class="launch-label">🚀 Lanzamiento del Token MDS</div>
+      <div class="launch-countdown" id="launchCountdown2">--d --h --m --s</div>
+      <div class="launch-sub">Podrás retirar tus MDS cuando el token sea lanzado</div>
+    </div>
+
+    <div class="withdraw-panel">
+      <div class="withdraw-title">💰 TUS GANANCIAS</div>
+      <div class="withdraw-row">
+        <span class="withdraw-label">MDS acumulados</span>
+        <span class="withdraw-value" id="withdrawMDS">0.0</span>
+      </div>
+      <div class="withdraw-row">
+        <span class="withdraw-label">Mínimo para retirar</span>
+        <span class="withdraw-value" style="color:var(--gold)">5.0 MDS</span>
+      </div>
+      <div class="withdraw-progress-wrap">
+        <div style="display:flex;justify-content:space-between;font-family:Share Tech Mono,monospace;font-size:0.65rem;color:var(--text2);margin-bottom:4px">
+          <span>Progreso hacia el mínimo</span>
+          <span id="withdrawPct">0%</span>
+        </div>
+        <div class="withdraw-progress-bar">
+          <div class="withdraw-progress-fill" id="withdrawProgressFill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <div style="border-top:1px solid var(--border);padding-top:14px;margin-top:4px">
+        <div class="withdraw-label" style="margin-bottom:8px">📬 Registra tu wallet BEP-20 para recibir tus MDS el día del lanzamiento:</div>
+        <input class="wallet-register-input" id="walletRegisterInput" type="text" placeholder="0x... (BNB Chain / BEP-20)" />
+        <button class="wallet-register-btn" onclick="saveWalletAddress()">💾 GUARDAR WALLET</button>
+        <div class="wallet-saved-badge hidden" id="walletSavedBadge"></div>
+      </div>
+    </div>
+  </div>
+
+
 </main>
 
 <script>
@@ -821,13 +1055,141 @@ let state = {
   inventory: [],
 };
 
-// Load from localStorage
-function loadState() {
+// ============================================================
+// FIREBASE AUTH & FIRESTORE
+// ============================================================
+let currentUser = null;
+let authMode = 'login'; // 'login' | 'register'
+
+function openAuthModal() {
+  document.getElementById('authOverlay').classList.remove('hidden');
+  document.getElementById('authError').textContent = '';
+  document.getElementById('authEmail').value = '';
+  document.getElementById('authPassword').value = '';
+}
+function closeAuthModal() {
+  document.getElementById('authOverlay').classList.add('hidden');
+}
+function toggleAuthMode() {
+  authMode = authMode === 'login' ? 'register' : 'login';
+  document.getElementById('authTitle').textContent = authMode === 'login' ? 'INICIAR SESIÓN' : 'CREAR CUENTA';
+  document.getElementById('authSwitch').innerHTML = authMode === 'login'
+    ? '¿No tienes cuenta? <span onclick="toggleAuthMode()">Regístrate</span>'
+    : '¿Ya tienes cuenta? <span onclick="toggleAuthMode()">Inicia sesión</span>';
+  document.getElementById('authError').textContent = '';
+}
+
+async function fbEmailAuth() {
+  const fb = window._fb;
+  if (!fb) { showToast('Firebase cargando...', 'error'); return; }
+  const email = document.getElementById('authEmail').value.trim();
+  const pass  = document.getElementById('authPassword').value;
+  const errEl = document.getElementById('authError');
+  errEl.textContent = '';
+  try {
+    if (authMode === 'login') {
+      await fb.signInWithEmailAndPassword(fb.auth, email, pass);
+    } else {
+      await fb.createUserWithEmailAndPassword(fb.auth, email, pass);
+    }
+    closeAuthModal();
+  } catch(e) {
+    const msgs = {
+      'auth/invalid-email': 'Email inválido',
+      'auth/user-not-found': 'Usuario no encontrado',
+      'auth/wrong-password': 'Contraseña incorrecta',
+      'auth/email-already-in-use': 'Email ya registrado',
+      'auth/weak-password': 'Contraseña muy corta (mín 6 chars)',
+    };
+    errEl.textContent = msgs[e.code] || e.message;
+  }
+}
+
+async function fbGoogleAuth() {
+  const fb = window._fb;
+  if (!fb) { showToast('Firebase cargando...', 'error'); return; }
+  try {
+    await fb.signInWithPopup(fb.auth, fb.googleProvider);
+    closeAuthModal();
+  } catch(e) {
+    document.getElementById('authError').textContent = e.message;
+  }
+}
+
+async function fbLogout() {
+  const fb = window._fb;
+  if (!fb) return;
+  await fb.signOut(fb.auth);
+  currentUser = null;
+  updateAuthUI(null);
+  document.getElementById('authOverlay').classList.remove('hidden');
+  showToast('Sesión cerrada', 'success');
+}
+
+async function saveStateToFirestore(uid) {
+  const fb = window._fb;
+  if (!fb || !uid) return;
+  try {
+    await fb.setDoc(fb.doc(fb.db, 'users', uid), { state: JSON.stringify(state) });
+  } catch(e) { console.warn('Firestore save error', e); }
+}
+
+async function loadStateFromFirestore(uid) {
+  const fb = window._fb;
+  if (!fb || !uid) return false;
+  try {
+    const snap = await fb.getDoc(fb.doc(fb.db, 'users', uid));
+    if (snap.exists()) {
+      const parsed = JSON.parse(snap.data().state);
+      const today = new Date().toDateString();
+      if (parsed.lastReset !== today) {
+        parsed.games.clicker.completedToday  = false;
+        parsed.games.goldrush.completedToday = false;
+        parsed.games.puzzle.completedToday   = false;
+        parsed.games.spin.completedToday     = false;
+        parsed.lastReset = today;
+      }
+      state = { ...state, ...parsed };
+      return true;
+    }
+  } catch(e) { console.warn('Firestore load error', e); }
+  return false;
+}
+
+function updateAuthUI(user) {
+  const area = document.getElementById('authHeaderArea');
+  if (user) {
+    const name = user.displayName || user.email.split('@')[0];
+    area.innerHTML = `<span class="user-display" title="${user.email}">${name}</span>
+      <button class="login-btn" onclick="fbLogout()" style="margin-left:6px">SALIR</button>`;
+  } else {
+    area.innerHTML = `<button class="login-btn" onclick="openAuthModal()">LOGIN</button>`;
+  }
+}
+
+// Init Firebase auth listener — runs after module loads
+function initFirebaseAuth() {
+  const fb = window._fb;
+  if (!fb) { setTimeout(initFirebaseAuth, 300); return; }
+  fb.onAuthStateChanged(fb.auth, async (user) => {
+    currentUser = user;
+    updateAuthUI(user);
+    if (user) {
+      const loaded = await loadStateFromFirestore(user.uid);
+      if (!loaded) loadStateLocal();
+      updateUI();
+      document.getElementById('authOverlay').classList.add('hidden');
+      showToast('Bienvenido ' + (user.displayName || user.email.split('@')[0]) + ' ✓', 'success');
+    }
+  });
+}
+
+// Load from localStorage (fallback when not logged in)
+function loadStateLocal() {
   try {
     const s = localStorage.getItem('playmidasState');
     if (s) {
       const parsed = JSON.parse(s);
-      // Check daily reset
       const today = new Date().toDateString();
       if (parsed.lastReset !== today) {
         parsed.games.clicker.completedToday  = false;
@@ -843,8 +1205,13 @@ function loadState() {
   } catch(e) {}
 }
 
+function loadState() {
+  loadStateLocal();
+}
+
 function saveState() {
   localStorage.setItem('playmidasState', JSON.stringify(state));
+  if (currentUser) saveStateToFirestore(currentUser.uid);
   updateUI();
 }
 
@@ -858,6 +1225,7 @@ function updateUI() {
     document.getElementById('walletBtn').textContent = state.wallet.slice(0,6)+'...'+state.wallet.slice(-4);
   }
   renderStore();
+  updateWithdrawUI();
 }
 
 // ============================================================
@@ -881,13 +1249,13 @@ async function connectWallet() {
 // TABS
 // ============================================================
 function showTab(tab) {
-  const panels = ['clicker','goldrush','puzzle','spin','store','info'];
+  const panels = ['clicker','goldrush','puzzle','spin','store','info','withdraw'];
   panels.forEach(p => {
     const el = document.getElementById('game-' + p);
     el && el.classList.add('hidden');
   });
   document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.remove('active'));
-  const tabMap = ['clicker','goldrush','puzzle','spin','store','info'];
+  const tabMap = ['clicker','goldrush','puzzle','spin','store','info','withdraw'];
   const idx = tabMap.indexOf(tab);
   document.getElementById('game-' + tab)?.classList.remove('hidden');
   document.querySelectorAll('.tab-btn')[idx]?.classList.add('active');
@@ -1465,11 +1833,74 @@ function buyItem(id, effect, price) {
   showToast('¡Item activado! 🎉','success');
 }
 
+
+// ============================================================
+// LAUNCH COUNTDOWN
+// ============================================================
+const LAUNCH_DATE = new Date('2026-07-21T00:00:00');
+
+function updateCountdown() {
+  const now = new Date();
+  const diff = LAUNCH_DATE - now;
+  if (diff <= 0) {
+    const els = document.querySelectorAll('#launchCountdown, #launchCountdown2');
+    els.forEach(el => { if(el) el.textContent = '🎉 ¡LANZAMIENTO HOY!'; });
+    return;
+  }
+  const d = Math.floor(diff / 86400000);
+  const h = Math.floor((diff % 86400000) / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+  const txt = `${d}d ${String(h).padStart(2,'0')}h ${String(m).padStart(2,'0')}m ${String(s).padStart(2,'0')}s`;
+  const els = document.querySelectorAll('#launchCountdown, #launchCountdown2');
+  els.forEach(el => { if(el) el.textContent = txt; });
+}
+setInterval(updateCountdown, 1000);
+updateCountdown();
+
+// ============================================================
+// WITHDRAW / WALLET REGISTER
+// ============================================================
+function updateWithdrawUI() {
+  const mds = state.mds || 0;
+  const pct = Math.min(100, (mds / 5) * 100);
+  const el = document.getElementById('withdrawMDS');
+  const pctEl = document.getElementById('withdrawPct');
+  const fillEl = document.getElementById('withdrawProgressFill');
+  if (el) el.textContent = mds.toFixed(4);
+  if (pctEl) pctEl.textContent = pct.toFixed(1) + '%';
+  if (fillEl) fillEl.style.width = pct + '%';
+
+  // Show saved wallet if exists
+  if (state.wallet) {
+    const badge = document.getElementById('walletSavedBadge');
+    const input = document.getElementById('walletRegisterInput');
+    if (badge) { badge.textContent = '✓ Wallet guardada: ' + state.wallet; badge.classList.remove('hidden'); }
+    if (input) input.value = state.wallet;
+  }
+}
+
+async function saveWalletAddress() {
+  const input = document.getElementById('walletRegisterInput');
+  if (!input) return;
+  const addr = input.value.trim();
+  if (!addr.startsWith('0x') || addr.length < 40) {
+    showToast('Dirección BEP-20 inválida', 'error'); return;
+  }
+  state.wallet = addr;
+  saveState();
+  const badge = document.getElementById('walletSavedBadge');
+  if (badge) { badge.textContent = '✓ Wallet guardada: ' + addr; badge.classList.remove('hidden'); }
+  showToast('Wallet registrada ✓', 'success');
+}
+
 // ============================================================
 // INIT
 // ============================================================
 loadState();
 updateUI();
+// Init Firebase auth after module scripts load
+setTimeout(initFirebaseAuth, 500);
 </script>
 </body>
 </html>
