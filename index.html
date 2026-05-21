@@ -303,52 +303,72 @@
       margin-top:12px;
     }
 
-    /* === GAME 3: MIDAS PUZZLE (2048) === */
-    #game-puzzle .puzzle-info {
-      display:flex; justify-content:space-between;
-      align-items:center; margin-bottom:12px;
-    }
-    .attempts-badge {
-      font-family:'Share Tech Mono',monospace;
-      font-size:0.75rem; color:var(--red);
-      background: rgba(255,68,102,0.1);
-      border:1px solid var(--red);
-      padding:4px 10px; border-radius:4px;
-    }
-    .puzzle-grid {
+    /* === GAME 3: MIDAS MEMORY === */
+    .memory-grid {
       display:grid;
       grid-template-columns: repeat(4,1fr);
-      gap:6px;
-      background: var(--bg3);
-      padding:10px;
-      border-radius:10px;
-      border:1px solid var(--border);
-      touch-action: none;
+      gap:8px;
+      padding:4px;
     }
-    .puzzle-cell {
+    .mem-card {
       aspect-ratio:1;
-      border-radius:6px;
-      display:flex; align-items:center; justify-content:center;
-      font-family:'Orbitron',monospace;
-      font-weight:700;
-      font-size:0.85rem;
-      transition: all 0.1s;
+      border-radius:10px;
+      cursor:pointer;
+      position:relative;
+      perspective:600px;
+      user-select:none;
     }
-    .cell-0    { background:#0d1e2f; color:transparent; }
-    .cell-2    { background:#0f3d5c; color:#7dd4f8; border:1px solid #1a6a9a; }
-    .cell-4    { background:#0a4d3a; color:#5df0a8; border:1px solid #0d7a5c; }
-    .cell-8    { background:#1a4a00; color:#88ff44; border:1px solid #2d7a00; }
-    .cell-16   { background:#4a3a00; color:#ffd700; border:1px solid #7a5c00; }
-    .cell-32   { background:#4a1a00; color:#ff9944; border:1px solid #7a3300; }
-    .cell-64   { background:#4a0000; color:#ff6644; border:1px solid #8a0000; }
-    .cell-128  { background:#3a0a4a; color:#cc88ff; border:1px solid #6a1a8a; }
-    .cell-256  { background:#001a4a; color:#44aaff; border:1px solid #0033aa; }
-    .cell-512  { background:#1a004a; color:#ff44cc; border:1px solid #4400aa; }
-    .cell-1024 { background:#4a4a00; color:#ffff44; border:1px solid #8a8a00; font-size:0.65rem; }
-    .cell-2048 { background:linear-gradient(135deg,#ffd700,#ff8800); color:#000; font-size:0.65rem; }
-    .puzzle-score {
+    .mem-card-inner {
+      width:100%; height:100%;
+      border-radius:10px;
+      transition: transform 0.35s;
+      transform-style: preserve-3d;
+      position:relative;
+    }
+    .mem-card.flipped .mem-card-inner { transform: rotateY(180deg); }
+    .mem-card.matched .mem-card-inner { transform: rotateY(180deg); }
+    .mem-card-front, .mem-card-back {
+      position:absolute; inset:0;
+      border-radius:10px;
+      display:flex; align-items:center; justify-content:center;
+      backface-visibility:hidden;
+    }
+    .mem-card-front {
+      background: var(--bg3);
+      border:1px solid var(--border);
+      font-size:1.6rem;
+    }
+    .mem-card-back {
+      background: linear-gradient(135deg,#0d1e2f,#1a3a5c);
+      border:2px solid var(--accent);
+      font-size:1.4rem;
+      transform: rotateY(180deg);
+      box-shadow: 0 0 10px rgba(0,212,255,0.2);
+    }
+    .mem-card-back::after {
+      content:'?';
       font-family:'Orbitron',monospace;
-      font-size:1rem; font-weight:700; color:var(--gold);
+      font-size:1.2rem;
+      color:var(--border);
+    }
+    .mem-card.matched .mem-card-front {
+      border-color:var(--accent2);
+      box-shadow:0 0 12px rgba(0,255,136,0.3);
+    }
+    .mem-info {
+      display:flex; justify-content:space-between;
+      margin-bottom:12px;
+    }
+    .mem-stat {
+      font-family:'Share Tech Mono',monospace;
+      font-size:0.75rem; color:var(--text2);
+      text-align:center;
+    }
+    .mem-stat span {
+      display:block;
+      font-family:'Orbitron',monospace;
+      font-size:1rem; font-weight:700;
+      color:var(--accent); margin-top:2px;
     }
 
     /* === GAME 4: FORTUNE SPIN === */
@@ -742,7 +762,7 @@
   <div class="tabs">
     <button class="tab-btn active" onclick="showTab('clicker')">⚡ Clicker</button>
     <button class="tab-btn" onclick="showTab('goldrush')">💰 Gold Rush</button>
-    <button class="tab-btn" onclick="showTab('puzzle')">🧩 Puzzle</button>
+    <button class="tab-btn" onclick="showTab('puzzle')">🃏 Memory</button>
     <button class="tab-btn" onclick="showTab('spin')">🎰 Fortune</button>
     <button class="tab-btn" onclick="showTab('store')">🛒 Tienda</button>
     <button class="tab-btn" onclick="showTab('info')">📊 Token</button>
@@ -828,10 +848,10 @@
     <div class="reset-timer" id="rushReset"></div>
   </div>
 
-  <!-- ===== GAME 3: PUZZLE ===== -->
+  <!-- ===== GAME 3: MIDAS MEMORY ===== -->
   <div id="game-puzzle" class="game-panel hidden">
     <div class="game-header">
-      <div class="game-title">🧩 MIDAS PUZZLE</div>
+      <div class="game-title">🃏 MIDAS MEMORY</div>
       <div class="level-badge" id="puzzleLevelBadge">LVL 1</div>
     </div>
     <div class="game-body">
@@ -844,17 +864,17 @@
       </div>
 
       <div id="puzzleOverlayStart" class="game-overlay">
-        <p style="color:var(--text2);font-size:0.8rem;margin-bottom:8px">Combina fichas iguales para alcanzar la meta.<br>Desliza con el dedo. Máx 5 intentos por nivel.</p>
+        <p style="color:var(--text2);font-size:0.8rem;margin-bottom:8px">Encuentra todos los pares de cartas.<br>Menos intentos = más puntos. ¡Memoriza!</p>
         <button class="start-btn" onclick="startPuzzle()">▶ INICIAR</button>
       </div>
 
       <div id="puzzleGame" class="hidden">
-        <div class="puzzle-info">
-          <div class="puzzle-score">Score: <span id="puzzleScore">0</span></div>
-          <div>Meta: <span id="puzzleTarget" style="color:var(--gold);font-family:Orbitron">—</span></div>
-          <div class="attempts-badge">♻ <span id="puzzleAttempts">5</span> intentos</div>
+        <div class="mem-info">
+          <div class="mem-stat">Pares<span id="memPairs">0/0</span></div>
+          <div class="mem-stat">Intentos<span id="memMoves">0</span></div>
+          <div class="mem-stat">Puntos<span id="memPoints">0</span></div>
         </div>
-        <div class="puzzle-grid" id="puzzleGrid"></div>
+        <div class="memory-grid" id="memoryGrid"></div>
       </div>
 
       <div id="puzzleOverlayEnd" class="game-overlay hidden">
@@ -1423,6 +1443,8 @@ function endClicker(won) {
 let rushState = { running:false, coins:0, target:10, timer:null, level:1, spawnId:null };
 
 function startRush() {
+  const isMobile = ('ontouchstart' in window) || navigator.maxTouchPoints > 0;
+  if (!isMobile) { showToast('📱 Gold Rush es solo para móvil', 'error'); return; }
   const g = state.games.goldrush;
   rushState.level = g.level;
   if (g.level > 15) { showToast('¡Completaste Gold Rush! Reinicia mañana.'); return; }
@@ -1517,144 +1539,147 @@ function endRush(won) {
 }
 
 // ============================================================
-// GAME 3: MIDAS PUZZLE (2048)
+// GAME 3: MIDAS MEMORY
 // ============================================================
-let puzzleState = { running:false, grid:[], score:0, timer:null, level:1, attempts:5, target:64, startX:0, startY:0 };
+const MEMORY_ICONS = ['🪙','💎','🏆','⚡','🔥','💰','👑','🌟','🚀','💫','🎯','🛡️'];
+let memState = { running:false, cards:[], flipped:[], matched:0, moves:0, total:0, timer:null, level:1, locked:false };
 
-function getPuzzleTarget(level) {
-  const targets = [64,128,128,256,256,256,512,512,512,1024,1024,1024,2048,2048,2048];
-  return targets[Math.min(level-1, targets.length-1)];
+function getMemConfig(level) {
+  // pairs: 4 at lvl1, up to 10 at lvl15. time: 60s down to 30s
+  const pairs = Math.min(4 + Math.floor((level-1)*0.5), 10);
+  const time  = Math.max(30, 70 - level*3);
+  return { pairs, time };
 }
 
 function startPuzzle() {
   const g = state.games.puzzle;
-  puzzleState.level = g.level;
-  if (g.level > 15) { showToast('¡Completaste el Puzzle! Reinicia mañana.'); return; }
+  memState.level = g.level;
+  if (g.level > 15) { showToast('¡Completaste Midas Memory! Reinicia mañana.'); return; }
 
-  puzzleState.score = 0;
-  puzzleState.attempts = 5;
-  puzzleState.target = getPuzzleTarget(puzzleState.level);
-  puzzleState.grid = Array(16).fill(0);
-  puzzleState.running = true;
+  const cfg = getMemConfig(memState.level);
+  const icons = MEMORY_ICONS.slice(0, cfg.pairs);
+  const deck = [...icons, ...icons].sort(() => Math.random()-0.5);
 
-  addPuzzleTile(); addPuzzleTile();
+  memState.cards   = deck;
+  memState.flipped = [];
+  memState.matched = 0;
+  memState.moves   = 0;
+  memState.total   = cfg.pairs;
+  memState.running = true;
+  memState.locked  = false;
 
   document.getElementById('puzzleOverlayStart').classList.add('hidden');
   document.getElementById('puzzleOverlayEnd').classList.add('hidden');
   document.getElementById('puzzleGame').classList.remove('hidden');
-  document.getElementById('puzzleLevelBadge').textContent = 'LVL ' + puzzleState.level;
-  document.getElementById('puzzleTarget').textContent = puzzleState.target;
-  document.getElementById('puzzleAttempts').textContent = puzzleState.attempts;
-  document.getElementById('puzzleScore').textContent = '0';
+  document.getElementById('puzzleLevelBadge').textContent = 'LVL ' + memState.level;
   document.getElementById('puzzleTimerFill').classList.remove('danger');
 
-  renderPuzzleGrid();
+  renderMemoryGrid();
+  updateMemUI();
 
-  if (puzzleState.timer) clearInterval(puzzleState.timer);
-  puzzleState.timer = createTimer(60, 'puzzleTimerFill', 'puzzleTimer', null, () => {
-    if (puzzleState.running) endPuzzle(false, 'Tiempo agotado');
+  if (memState.timer) clearInterval(memState.timer);
+  memState.timer = createTimer(cfg.time, 'puzzleTimerFill', 'puzzleTimer', null, () => {
+    if (memState.running) endMemory(false, 'Tiempo agotado');
   });
-
-  // Touch/swipe - attach to document to avoid scroll interference
-  document.ontouchstart = (e) => {
-    if (!puzzleState.running) return;
-    puzzleState.startX = e.touches[0].clientX;
-    puzzleState.startY = e.touches[0].clientY;
-  };
-  document.ontouchend = (e) => {
-    if (!puzzleState.running) return;
-    const dx = e.changedTouches[0].clientX - (puzzleState.startX||0);
-    const dy = e.changedTouches[0].clientY - (puzzleState.startY||0);
-    if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
-    e.preventDefault();
-    if (Math.abs(dx) > Math.abs(dy)) { if (dx>20) movePuzzle('right'); else if (dx<-20) movePuzzle('left'); }
-    else { if (dy>20) movePuzzle('down'); else if (dy<-20) movePuzzle('up'); }
-  };
 }
 
-function addPuzzleTile() {
-  const empty = puzzleState.grid.reduce((a,v,i)=>v===0?[...a,i]:a,[]);
-  if (!empty.length) return;
-  const idx = empty[Math.floor(Math.random()*empty.length)];
-  puzzleState.grid[idx] = Math.random()<0.9 ? 2 : 4;
-}
-
-function renderPuzzleGrid() {
-  const grid = document.getElementById('puzzleGrid');
+function renderMemoryGrid() {
+  const grid = document.getElementById('memoryGrid');
+  if (!grid) return;
+  // Adjust columns based on pairs
+  const cols = memState.total <= 4 ? 4 : memState.total <= 6 ? 4 : 4;
+  grid.style.gridTemplateColumns = `repeat(${cols}, 1fr)`;
   grid.innerHTML = '';
-  puzzleState.grid.forEach(v => {
-    const cell = document.createElement('div');
-    cell.className = 'puzzle-cell cell-' + Math.min(v, 2048);
-    cell.textContent = v || '';
-    grid.appendChild(cell);
+  memState.cards.forEach((icon, idx) => {
+    const card = document.createElement('div');
+    card.className = 'mem-card';
+    card.dataset.idx = idx;
+    card.dataset.icon = icon;
+    card.innerHTML = `
+      <div class="mem-card-inner">
+        <div class="mem-card-front">${icon}</div>
+        <div class="mem-card-back"></div>
+      </div>`;
+    card.addEventListener('click', () => flipCard(idx));
+    card.addEventListener('touchend', (e) => { e.preventDefault(); flipCard(idx); });
+    grid.appendChild(card);
   });
-  document.getElementById('puzzleScore').textContent = puzzleState.score;
 }
 
-function movePuzzle(dir) {
-  if (!puzzleState.running) return;
-  const prev = JSON.stringify(puzzleState.grid);
-  let g = [...puzzleState.grid];
-  const size = 4;
+function flipCard(idx) {
+  if (!memState.running || memState.locked) return;
+  if (memState.flipped.includes(idx)) return;
+  const card = document.querySelector(`.mem-card[data-idx="${idx}"]`);
+  if (!card || card.classList.contains('matched')) return;
 
-  function slideRow(row) {
-    let r = row.filter(x=>x);
-    for (let i=0;i<r.length-1;i++) {
-      if (r[i]===r[i+1]) { r[i]*=2; puzzleState.score+=r[i]; r.splice(i+1,1); i++; }
+  card.classList.add('flipped');
+  memState.flipped.push(idx);
+
+  if (memState.flipped.length === 2) {
+    memState.moves++;
+    memState.locked = true;
+    updateMemUI();
+    const [a, b] = memState.flipped;
+    const cardA = document.querySelector(`.mem-card[data-idx="${a}"]`);
+    const cardB = document.querySelector(`.mem-card[data-idx="${b}"]`);
+
+    if (memState.cards[a] === memState.cards[b]) {
+      // Match!
+      setTimeout(() => {
+        cardA.classList.add('matched');
+        cardB.classList.add('matched');
+        memState.matched++;
+        memState.flipped = [];
+        memState.locked  = false;
+        updateMemUI();
+        if (memState.matched === memState.total) {
+          clearInterval(memState.timer);
+          endMemory(true);
+        }
+      }, 400);
+    } else {
+      // No match - flip back
+      setTimeout(() => {
+        cardA.classList.remove('flipped');
+        cardB.classList.remove('flipped');
+        memState.flipped = [];
+        memState.locked  = false;
+      }, 900);
     }
-    while (r.length<size) r.push(0);
-    return r;
-  }
-
-  if (dir==='left')  { for(let r=0;r<4;r++) { const row=g.slice(r*4,r*4+4); const s=slideRow(row); for(let c=0;c<4;c++) g[r*4+c]=s[c]; } }
-  if (dir==='right') { for(let r=0;r<4;r++) { const row=g.slice(r*4,r*4+4).reverse(); const s=slideRow(row).reverse(); for(let c=0;c<4;c++) g[r*4+c]=s[c]; } }
-  if (dir==='up')    { for(let c=0;c<4;c++) { const col=[g[c],g[4+c],g[8+c],g[12+c]]; const s=slideRow(col); for(let r=0;r<4;r++) g[r*4+c]=s[r]; } }
-  if (dir==='down')  { for(let c=0;c<4;c++) { const col=[g[c],g[4+c],g[8+c],g[12+c]].reverse(); const s=slideRow(col).reverse(); for(let r=0;r<4;r++) g[r*4+c]=s[r]; } }
-
-  if (JSON.stringify(g)!==prev) {
-    puzzleState.grid=g;
-    addPuzzleTile();
-    renderPuzzleGrid();
-    // Check win
-    if (g.includes(puzzleState.target)) { clearInterval(puzzleState.timer); endPuzzle(true,''); return; }
-    // Check no moves
-    const hasEmpty = g.includes(0);
-    if (!hasEmpty) {
-      puzzleState.attempts--;
-      document.getElementById('puzzleAttempts').textContent = puzzleState.attempts;
-      if (puzzleState.attempts<=0) { clearInterval(puzzleState.timer); endPuzzle(false,'Sin intentos'); return; }
-      // Reset grid for next attempt
-      puzzleState.grid = Array(16).fill(0);
-      addPuzzleTile(); addPuzzleTile();
-      renderPuzzleGrid();
-      showToast('Sin movimientos. Intento -1','error');
-    }
+  } else {
+    updateMemUI();
   }
 }
 
-// Keyboard for desktop
-document.addEventListener('keydown', e => {
-  const map = {ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};
-  if (map[e.key]) { e.preventDefault(); movePuzzle(map[e.key]); }
-});
+function updateMemUI() {
+  const pairsEl  = document.getElementById('memPairs');
+  const movesEl  = document.getElementById('memMoves');
+  const pointsEl = document.getElementById('memPoints');
+  if (pairsEl)  pairsEl.textContent  = memState.matched + '/' + memState.total;
+  if (movesEl)  movesEl.textContent  = memState.moves;
+  if (pointsEl) pointsEl.textContent = Math.max(0, (memState.total * 20) - memState.moves * 2);
+}
 
-function endPuzzle(won, reason) {
-  puzzleState.running = false;
-  clearInterval(puzzleState.timer);
+function endMemory(won, reason) {
+  memState.running = false;
+  clearInterval(memState.timer);
   document.getElementById('puzzleGame').classList.add('hidden');
   document.getElementById('puzzleOverlayEnd').classList.remove('hidden');
   const res = document.getElementById('puzzleResult');
   const msg = document.getElementById('puzzleResultMsg');
+  const pts = Math.max(0, (memState.total * 20) - memState.moves * 2);
   if (won) {
-    res.className='result-text win'; res.textContent='✅ NIVEL COMPLETADO';
-    msg.textContent='Alcanzaste '+puzzleState.target+'! Score: '+puzzleState.score+'. +50 puntos';
+    state.points += pts;
+    res.className = 'result-text win'; res.textContent = '✅ NIVEL COMPLETADO';
+    msg.textContent = 'Pares: ' + memState.matched + '/' + memState.total + ' · Intentos: ' + memState.moves + ' · +' + pts + ' puntos';
     levelUp('puzzle');
-    document.getElementById('puzzleLevelBadge').textContent='LVL '+state.games.puzzle.level;
+    document.getElementById('puzzleLevelBadge').textContent = 'LVL ' + state.games.puzzle.level;
   } else {
-    res.className='result-text lose'; res.textContent='❌ '+reason.toUpperCase();
-    msg.textContent='Meta: '+puzzleState.target+'. Score: '+puzzleState.score+'. Intenta de nuevo.';
+    res.className = 'result-text lose'; res.textContent = '❌ ' + (reason||'SIN TIEMPO').toUpperCase();
+    msg.textContent = 'Encontraste ' + memState.matched + ' de ' + memState.total + ' pares. ¡Inténtalo de nuevo!';
   }
 }
+
 
 // ============================================================
 // GAME 4: FORTUNE SPIN
