@@ -1,0 +1,1470 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>PlayMidas — Earn MDS</title>
+  <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --bg:        #050a0f;
+      --bg2:       #0a1520;
+      --bg3:       #0f1e2e;
+      --panel:     #0d1e2f;
+      --border:    #1a3a5c;
+      --accent:    #00d4ff;
+      --accent2:   #00ff88;
+      --gold:      #ffd700;
+      --red:       #ff4466;
+      --text:      #c8e0f0;
+      --text2:     #6a9ab8;
+      --glow:      0 0 20px rgba(0,212,255,0.4);
+      --glow2:     0 0 20px rgba(0,255,136,0.4);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* GRID BG */
+    body::before {
+      content:'';
+      position: fixed; inset:0;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* HEADER */
+    header {
+      position: sticky; top:0; z-index:100;
+      background: rgba(5,10,15,0.95);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+      padding: 12px 20px;
+      display: flex; align-items:center; justify-content:space-between;
+    }
+    .logo {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: 1.3rem;
+      color: var(--accent);
+      text-shadow: var(--glow);
+      letter-spacing: 2px;
+    }
+    .logo span { color: var(--gold); }
+    .header-right { display:flex; align-items:center; gap:12px; }
+    .mds-balance {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem;
+      color: var(--accent2);
+      background: rgba(0,255,136,0.08);
+      border: 1px solid rgba(0,255,136,0.2);
+      padding: 6px 12px; border-radius: 6px;
+    }
+    .wallet-btn {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem;
+      background: linear-gradient(135deg, var(--accent), #0088aa);
+      color: #000;
+      border: none; cursor:pointer;
+      padding: 8px 14px; border-radius: 6px;
+      font-weight: 700; letter-spacing:1px;
+      transition: all 0.2s;
+    }
+    .wallet-btn:hover { transform:translateY(-1px); box-shadow: var(--glow); }
+
+    /* MAIN */
+    main { position:relative; z-index:1; padding: 16px; max-width: 480px; margin: 0 auto; }
+
+    /* STATS BAR */
+    .stats-bar {
+      display: grid; grid-template-columns: repeat(3,1fr);
+      gap: 10px; margin-bottom: 16px;
+    }
+    .stat-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      text-align: center;
+    }
+    .stat-label {
+      font-size: 0.65rem; color: var(--text2);
+      text-transform: uppercase; letter-spacing:1px;
+      font-family: 'Share Tech Mono', monospace;
+    }
+    .stat-value {
+      font-family: 'Orbitron', monospace;
+      font-size: 1rem; font-weight:700;
+      color: var(--accent); margin-top:4px;
+    }
+    .stat-value.gold { color: var(--gold); }
+    .stat-value.green { color: var(--accent2); }
+
+    /* TABS */
+    .tabs {
+      display: flex; gap:8px; margin-bottom:16px;
+      overflow-x: auto; padding-bottom:4px;
+    }
+    .tabs::-webkit-scrollbar { display:none; }
+    .tab-btn {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem; letter-spacing:1px;
+      padding: 8px 16px; border-radius:6px;
+      border: 1px solid var(--border);
+      background: var(--panel); color: var(--text2);
+      cursor:pointer; white-space:nowrap;
+      transition: all 0.2s;
+    }
+    .tab-btn.active {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: rgba(0,212,255,0.08);
+      box-shadow: var(--glow);
+    }
+
+    /* GAME PANEL */
+    .game-panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin-bottom: 16px;
+    }
+    .game-header {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--border);
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .game-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.85rem; font-weight:700;
+      color: var(--accent);
+    }
+    .level-badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem;
+      background: rgba(0,212,255,0.1);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      padding: 3px 8px; border-radius:4px;
+    }
+    .game-body { padding:16px; }
+
+    /* TIMER */
+    .timer-bar-wrap { margin-bottom:14px; }
+    .timer-label {
+      font-family:'Share Tech Mono',monospace;
+      font-size:0.7rem; color:var(--text2);
+      display:flex; justify-content:space-between;
+      margin-bottom:6px;
+    }
+    .timer-bar {
+      height:6px; background:var(--bg3);
+      border-radius:3px; overflow:hidden;
+    }
+    .timer-fill {
+      height:100%;
+      background: linear-gradient(90deg, var(--accent2), var(--accent));
+      transition: width 1s linear;
+      border-radius:3px;
+    }
+    .timer-fill.danger { background: linear-gradient(90deg, var(--red), #ff8800); }
+
+    /* LEVEL PROGRESS */
+    .level-progress { margin-bottom:16px; }
+    .progress-bar {
+      height:8px; background:var(--bg3);
+      border-radius:4px; overflow:hidden; margin-top:6px;
+    }
+    .progress-fill {
+      height:100%;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      border-radius:4px;
+      transition: width 0.3s ease;
+    }
+
+    /* REWARD NOTICE */
+    .reward-notice {
+      background: rgba(0,255,136,0.06);
+      border: 1px solid rgba(0,255,136,0.2);
+      border-radius:8px; padding:10px 14px;
+      font-size:0.75rem; color:var(--accent2);
+      font-family:'Share Tech Mono',monospace;
+      margin-bottom:14px;
+      display:flex; align-items:center; gap:8px;
+    }
+
+    /* === GAME 1: MIDAS CLICKER === */
+    #game-clicker .clicker-area {
+      text-align:center; padding:10px 0;
+    }
+    .coin-btn {
+      width:140px; height:140px; border-radius:50%;
+      background: radial-gradient(circle at 35% 35%, #ffe566, #cc9900);
+      border: 4px solid var(--gold);
+      box-shadow: 0 0 30px rgba(255,215,0,0.4), inset 0 0 20px rgba(0,0,0,0.3);
+      cursor:pointer; font-size:3.5rem;
+      display:flex; align-items:center; justify-content:center;
+      transition: transform 0.08s, box-shadow 0.08s;
+      user-select:none;
+      position:relative;
+    }
+    .coin-btn:active { transform:scale(0.93); box-shadow: 0 0 10px rgba(255,215,0,0.2); }
+    .click-count {
+      font-family:'Orbitron',monospace;
+      font-size:1.4rem; font-weight:900;
+      color:var(--gold); margin-top:14px;
+    }
+    .clicks-needed {
+      font-size:0.75rem; color:var(--text2);
+      font-family:'Share Tech Mono',monospace;
+      margin-top:4px;
+    }
+    .obstacle-list {
+      display:flex; gap:8px; flex-wrap:wrap;
+      justify-content:center; margin-top:12px;
+    }
+    .obstacle {
+      background: rgba(255,68,102,0.1);
+      border:1px solid var(--red);
+      border-radius:6px; padding:6px 10px;
+      font-size:0.7rem; color:var(--red);
+      font-family:'Share Tech Mono',monospace;
+      cursor:pointer;
+      animation: obstacle-pulse 1.5s infinite;
+    }
+    @keyframes obstacle-pulse {
+      0%,100% { opacity:1; } 50% { opacity:0.5; }
+    }
+    .float-point {
+      position:absolute;
+      font-family:'Orbitron',monospace;
+      font-size:1rem; font-weight:700;
+      color:var(--gold);
+      pointer-events:none;
+      animation: float-up 0.8s ease-out forwards;
+    }
+    @keyframes float-up {
+      0% { opacity:1; transform:translateY(0); }
+      100% { opacity:0; transform:translateY(-60px); }
+    }
+
+    /* === GAME 2: GOLD RUSH === */
+    #game-goldrush .rush-arena {
+      position:relative;
+      height:280px;
+      background: var(--bg3);
+      border-radius:10px;
+      overflow:hidden;
+      border:1px solid var(--border);
+      cursor:pointer;
+    }
+    .falling-item {
+      position:absolute;
+      font-size:1.8rem;
+      user-select:none;
+      transition: none;
+      cursor:pointer;
+    }
+    .rush-score {
+      font-family:'Orbitron',monospace;
+      font-size:1.2rem; font-weight:700;
+      color:var(--gold); text-align:center;
+      margin-top:12px;
+    }
+
+    /* === GAME 3: MIDAS PUZZLE (2048) === */
+    #game-puzzle .puzzle-info {
+      display:flex; justify-content:space-between;
+      align-items:center; margin-bottom:12px;
+    }
+    .attempts-badge {
+      font-family:'Share Tech Mono',monospace;
+      font-size:0.75rem; color:var(--red);
+      background: rgba(255,68,102,0.1);
+      border:1px solid var(--red);
+      padding:4px 10px; border-radius:4px;
+    }
+    .puzzle-grid {
+      display:grid;
+      grid-template-columns: repeat(4,1fr);
+      gap:6px;
+      background: var(--bg3);
+      padding:10px;
+      border-radius:10px;
+      border:1px solid var(--border);
+      touch-action: none;
+    }
+    .puzzle-cell {
+      aspect-ratio:1;
+      border-radius:6px;
+      display:flex; align-items:center; justify-content:center;
+      font-family:'Orbitron',monospace;
+      font-weight:700;
+      font-size:0.85rem;
+      transition: all 0.1s;
+    }
+    .cell-0    { background:#0d1e2f; color:transparent; }
+    .cell-2    { background:#0f3d5c; color:#7dd4f8; border:1px solid #1a6a9a; }
+    .cell-4    { background:#0a4d3a; color:#5df0a8; border:1px solid #0d7a5c; }
+    .cell-8    { background:#1a4a00; color:#88ff44; border:1px solid #2d7a00; }
+    .cell-16   { background:#4a3a00; color:#ffd700; border:1px solid #7a5c00; }
+    .cell-32   { background:#4a1a00; color:#ff9944; border:1px solid #7a3300; }
+    .cell-64   { background:#4a0000; color:#ff6644; border:1px solid #8a0000; }
+    .cell-128  { background:#3a0a4a; color:#cc88ff; border:1px solid #6a1a8a; }
+    .cell-256  { background:#001a4a; color:#44aaff; border:1px solid #0033aa; }
+    .cell-512  { background:#1a004a; color:#ff44cc; border:1px solid #4400aa; }
+    .cell-1024 { background:#4a4a00; color:#ffff44; border:1px solid #8a8a00; font-size:0.65rem; }
+    .cell-2048 { background:linear-gradient(135deg,#ffd700,#ff8800); color:#000; font-size:0.65rem; }
+    .puzzle-score {
+      font-family:'Orbitron',monospace;
+      font-size:1rem; font-weight:700; color:var(--gold);
+    }
+
+    /* === GAME 4: FORTUNE SPIN === */
+    #game-spin .spin-area {
+      text-align:center;
+    }
+    .wheel-wrap {
+      position:relative; display:inline-block;
+      margin: 10px auto;
+    }
+    .wheel {
+      width:220px; height:220px;
+      border-radius:50%;
+      border:4px solid var(--gold);
+      box-shadow: 0 0 30px rgba(255,215,0,0.3);
+      position:relative;
+      overflow:hidden;
+      transition: transform 3s cubic-bezier(0.17,0.67,0.12,0.99);
+    }
+    .wheel-pointer {
+      position:absolute;
+      top:-18px; left:50%;
+      transform:translateX(-50%);
+      font-size:1.5rem;
+      z-index:10;
+      filter: drop-shadow(0 0 6px var(--gold));
+    }
+    .spin-btn {
+      font-family:'Orbitron',monospace;
+      font-size:0.85rem; font-weight:700;
+      background: linear-gradient(135deg, var(--gold), #cc8800);
+      color:#000; border:none; cursor:pointer;
+      padding:12px 32px; border-radius:8px;
+      margin-top:14px; letter-spacing:2px;
+      transition:all 0.2s;
+      display:block; width:100%;
+    }
+    .spin-btn:hover:not(:disabled) { transform:translateY(-2px); box-shadow:0 4px 20px rgba(255,215,0,0.4); }
+    .spin-btn:disabled { opacity:0.4; cursor:not-allowed; }
+    .spin-bet {
+      display:flex; gap:8px; margin:12px 0;
+      justify-content:center;
+    }
+    .bet-btn {
+      font-family:'Share Tech Mono',monospace;
+      font-size:0.75rem;
+      padding:6px 14px; border-radius:6px;
+      border:1px solid var(--border);
+      background:var(--bg3); color:var(--text2);
+      cursor:pointer; transition:all 0.2s;
+    }
+    .bet-btn.active {
+      border-color:var(--gold); color:var(--gold);
+      background:rgba(255,215,0,0.08);
+    }
+    .spin-result {
+      font-family:'Orbitron',monospace;
+      font-size:1.1rem; font-weight:700;
+      margin-top:10px; min-height:28px;
+    }
+    .spin-points {
+      font-family:'Share Tech Mono',monospace;
+      font-size:0.8rem; color:var(--text2);
+      margin-top:4px;
+    }
+
+    /* START/END overlays */
+    .game-overlay {
+      text-align:center; padding:20px 0;
+    }
+    .start-btn {
+      font-family:'Orbitron',monospace;
+      font-size:0.85rem; font-weight:700; letter-spacing:2px;
+      background: linear-gradient(135deg, var(--accent), #006688);
+      color:#000; border:none; cursor:pointer;
+      padding:14px 36px; border-radius:8px;
+      transition:all 0.2s; margin-top:12px;
+    }
+    .start-btn:hover { transform:translateY(-2px); box-shadow:var(--glow); }
+    .result-text {
+      font-family:'Orbitron',monospace;
+      font-size:1.1rem; font-weight:700;
+      margin-bottom:8px;
+    }
+    .result-text.win { color:var(--accent2); }
+    .result-text.lose { color:var(--red); }
+
+    /* STORE */
+    .store-grid {
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:12px;
+    }
+    .store-item {
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:12px; padding:16px;
+      text-align:center;
+      transition:all 0.2s;
+    }
+    .store-item:hover { border-color:var(--accent); }
+    .item-icon { font-size:2.2rem; margin-bottom:8px; }
+    .item-name {
+      font-family:'Share Tech Mono',monospace;
+      font-size:0.75rem; color:var(--text);
+      margin-bottom:4px;
+    }
+    .item-desc {
+      font-size:0.65rem; color:var(--text2);
+      margin-bottom:10px; line-height:1.4;
+    }
+    .item-price {
+      font-family:'Orbitron',monospace;
+      font-size:0.8rem; font-weight:700;
+      color:var(--gold); margin-bottom:8px;
+    }
+    .buy-btn {
+      font-family:'Share Tech Mono',monospace;
+      font-size:0.7rem; letter-spacing:1px;
+      background:linear-gradient(135deg,var(--gold),#aa7700);
+      color:#000; border:none; cursor:pointer;
+      padding:7px 16px; border-radius:6px;
+      width:100%; transition:all 0.2s;
+    }
+    .buy-btn:hover { transform:translateY(-1px); }
+    .buy-btn:disabled { opacity:0.4; cursor:not-allowed; transform:none; }
+    .owned-badge {
+      font-family:'Share Tech Mono',monospace;
+      font-size:0.65rem; color:var(--accent2);
+      background:rgba(0,255,136,0.1);
+      border:1px solid rgba(0,255,136,0.3);
+      padding:5px; border-radius:6px;
+      width:100%; text-align:center;
+    }
+
+    /* LEADERBOARD / INFO */
+    .info-section { margin-bottom:16px; }
+    .info-title {
+      font-family:'Orbitron',monospace;
+      font-size:0.8rem; color:var(--accent);
+      margin-bottom:10px; letter-spacing:1px;
+    }
+    .token-info-grid {
+      display:grid; grid-template-columns:1fr 1fr;
+      gap:8px;
+    }
+    .token-info-card {
+      background:var(--panel);
+      border:1px solid var(--border);
+      border-radius:8px; padding:12px;
+    }
+    .ti-label { font-size:0.65rem; color:var(--text2); font-family:'Share Tech Mono',monospace; }
+    .ti-value { font-family:'Orbitron',monospace; font-size:0.85rem; color:var(--accent2); margin-top:2px; }
+
+    /* TOAST */
+    .toast {
+      position:fixed; bottom:80px; left:50%;
+      transform:translateX(-50%);
+      background:rgba(0,212,255,0.15);
+      border:1px solid var(--accent);
+      color:var(--accent);
+      font-family:'Share Tech Mono',monospace;
+      font-size:0.8rem; padding:10px 20px;
+      border-radius:8px; z-index:999;
+      animation: toast-in 0.3s ease;
+      white-space:nowrap;
+    }
+    .toast.success { border-color:var(--accent2); color:var(--accent2); background:rgba(0,255,136,0.1); }
+    .toast.error { border-color:var(--red); color:var(--red); background:rgba(255,68,102,0.1); }
+    @keyframes toast-in { from { opacity:0; transform:translateX(-50%) translateY(10px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+
+    /* RESET TIMER */
+    .reset-timer {
+      text-align:center;
+      font-family:'Share Tech Mono',monospace;
+      font-size:0.7rem; color:var(--text2);
+      padding:10px;
+      border-top:1px solid var(--border);
+    }
+
+    /* HIDDEN */
+    .hidden { display:none !important; }
+
+    /* RESPONSIVE */
+    @media(max-width:400px) {
+      .stats-bar { grid-template-columns:repeat(3,1fr); }
+      .store-grid { grid-template-columns:1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">PLAY<span>MIDAS</span></div>
+  <div class="header-right">
+    <div class="mds-balance" id="headerBalance">0.0000 MDS</div>
+    <button class="wallet-btn" id="walletBtn" onclick="connectWallet()">CONNECT</button>
+  </div>
+</header>
+
+<main>
+  <!-- STATS -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-label">Puntos</div>
+      <div class="stat-value gold" id="statPoints">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Nivel Total</div>
+      <div class="stat-value" id="statLevel">0</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">MDS Ganados</div>
+      <div class="stat-value green" id="statMDS">0.0</div>
+    </div>
+  </div>
+
+  <!-- REWARD NOTICE -->
+  <div class="reward-notice">
+    <span>⚡</span>
+    <span>Cada 10 niveles = <strong>0.1 MDS</strong> — Máx 6 MDS por completar todo</span>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('clicker')">⚡ Clicker</button>
+    <button class="tab-btn" onclick="showTab('goldrush')">💰 Gold Rush</button>
+    <button class="tab-btn" onclick="showTab('puzzle')">🧩 Puzzle</button>
+    <button class="tab-btn" onclick="showTab('spin')">🎰 Fortune</button>
+    <button class="tab-btn" onclick="showTab('store')">🛒 Tienda</button>
+    <button class="tab-btn" onclick="showTab('info')">📊 Token</button>
+  </div>
+
+  <!-- ===== GAME 1: MIDAS CLICKER ===== -->
+  <div id="game-clicker" class="game-panel">
+    <div class="game-header">
+      <div class="game-title">⚡ MIDAS CLICKER</div>
+      <div class="level-badge" id="clickerLevelBadge">LVL 1</div>
+    </div>
+    <div class="game-body">
+      <div class="timer-bar-wrap">
+        <div class="timer-label">
+          <span>TIEMPO</span>
+          <span id="clickerTimer">45s</span>
+        </div>
+        <div class="timer-bar"><div class="timer-fill" id="clickerTimerFill" style="width:100%"></div></div>
+      </div>
+      <div class="level-progress">
+        <div class="timer-label">
+          <span>PROGRESO NIVEL</span>
+          <span id="clickerLevelProgress">0 / 60</span>
+        </div>
+        <div class="progress-bar"><div class="progress-fill" id="clickerProgressFill" style="width:0%"></div></div>
+      </div>
+
+      <div id="clickerOverlayStart" class="game-overlay">
+        <p style="color:var(--text2);font-size:0.8rem;margin-bottom:8px">Clickea la moneda para ganar puntos.<br>Cada nivel requiere más clicks y tiene obstáculos.</p>
+        <button class="start-btn" onclick="startClicker()">▶ INICIAR</button>
+      </div>
+
+      <div id="clickerGame" class="clicker-area hidden">
+        <div style="position:relative;display:inline-block">
+          <button class="coin-btn" id="coinBtn" onclick="handleCoinClick(event)">🪙</button>
+        </div>
+        <div class="click-count" id="clickCount">0</div>
+        <div class="clicks-needed" id="clicksNeeded">Necesitas: 60 clicks</div>
+        <div class="obstacle-list" id="obstacleList"></div>
+      </div>
+
+      <div id="clickerOverlayEnd" class="game-overlay hidden">
+        <div class="result-text" id="clickerResult">—</div>
+        <p style="color:var(--text2);font-size:0.75rem;margin-bottom:10px" id="clickerResultMsg"></p>
+        <button class="start-btn" onclick="startClicker()">🔄 JUGAR DE NUEVO</button>
+      </div>
+    </div>
+    <div class="reset-timer" id="clickerReset"></div>
+  </div>
+
+  <!-- ===== GAME 2: GOLD RUSH ===== -->
+  <div id="game-goldrush" class="game-panel hidden">
+    <div class="game-header">
+      <div class="game-title">💰 GOLD RUSH</div>
+      <div class="level-badge" id="rushLevelBadge">LVL 1</div>
+    </div>
+    <div class="game-body">
+      <div class="timer-bar-wrap">
+        <div class="timer-label">
+          <span>TIEMPO</span>
+          <span id="rushTimer">45s</span>
+        </div>
+        <div class="timer-bar"><div class="timer-fill" id="rushTimerFill" style="width:100%"></div></div>
+      </div>
+
+      <div id="rushOverlayStart" class="game-overlay">
+        <p style="color:var(--text2);font-size:0.8rem;margin-bottom:8px">Toca las monedas 🪙 que caen.<br>Evita las trampas 💣. Más rápido cada nivel.</p>
+        <button class="start-btn" onclick="startRush()">▶ INICIAR</button>
+      </div>
+
+      <div id="rushGame" class="hidden">
+        <div class="rush-arena" id="rushArena"></div>
+        <div class="rush-score">Monedas: <span id="rushCoins">0</span> / <span id="rushTarget">10</span></div>
+      </div>
+
+      <div id="rushOverlayEnd" class="game-overlay hidden">
+        <div class="result-text" id="rushResult">—</div>
+        <p style="color:var(--text2);font-size:0.75rem;margin-bottom:10px" id="rushResultMsg"></p>
+        <button class="start-btn" onclick="startRush()">🔄 JUGAR DE NUEVO</button>
+      </div>
+    </div>
+    <div class="reset-timer" id="rushReset"></div>
+  </div>
+
+  <!-- ===== GAME 3: PUZZLE ===== -->
+  <div id="game-puzzle" class="game-panel hidden">
+    <div class="game-header">
+      <div class="game-title">🧩 MIDAS PUZZLE</div>
+      <div class="level-badge" id="puzzleLevelBadge">LVL 1</div>
+    </div>
+    <div class="game-body">
+      <div class="timer-bar-wrap">
+        <div class="timer-label">
+          <span>TIEMPO</span>
+          <span id="puzzleTimer">60s</span>
+        </div>
+        <div class="timer-bar"><div class="timer-fill" id="puzzleTimerFill" style="width:100%"></div></div>
+      </div>
+
+      <div id="puzzleOverlayStart" class="game-overlay">
+        <p style="color:var(--text2);font-size:0.8rem;margin-bottom:8px">Combina fichas iguales para alcanzar la meta.<br>Desliza con el dedo. Máx 5 intentos por nivel.</p>
+        <button class="start-btn" onclick="startPuzzle()">▶ INICIAR</button>
+      </div>
+
+      <div id="puzzleGame" class="hidden">
+        <div class="puzzle-info">
+          <div class="puzzle-score">Score: <span id="puzzleScore">0</span></div>
+          <div>Meta: <span id="puzzleTarget" style="color:var(--gold);font-family:Orbitron">—</span></div>
+          <div class="attempts-badge">♻ <span id="puzzleAttempts">5</span> intentos</div>
+        </div>
+        <div class="puzzle-grid" id="puzzleGrid"></div>
+      </div>
+
+      <div id="puzzleOverlayEnd" class="game-overlay hidden">
+        <div class="result-text" id="puzzleResult">—</div>
+        <p style="color:var(--text2);font-size:0.75rem;margin-bottom:10px" id="puzzleResultMsg"></p>
+        <button class="start-btn" onclick="startPuzzle()">🔄 JUGAR DE NUEVO</button>
+      </div>
+    </div>
+    <div class="reset-timer" id="puzzleReset"></div>
+  </div>
+
+  <!-- ===== GAME 4: FORTUNE SPIN ===== -->
+  <div id="game-spin" class="game-panel hidden">
+    <div class="game-header">
+      <div class="game-title">🎰 FORTUNE SPIN</div>
+      <div class="level-badge" id="spinLevelBadge">LVL 1</div>
+    </div>
+    <div class="game-body">
+      <div class="timer-bar-wrap">
+        <div class="timer-label">
+          <span>TIEMPO</span>
+          <span id="spinTimer">45s</span>
+        </div>
+        <div class="timer-bar"><div class="timer-fill" id="spinTimerFill" style="width:100%"></div></div>
+      </div>
+
+      <div id="spinOverlayStart" class="game-overlay">
+        <p style="color:var(--text2);font-size:0.8rem;margin-bottom:8px">Apuesta tus puntos y gira la ruleta.<br>Gana multiplicadores o pierde tu apuesta.</p>
+        <button class="start-btn" onclick="startSpin()">▶ INICIAR</button>
+      </div>
+
+      <div id="spinGame" class="hidden spin-area">
+        <div class="spin-bet">
+          <button class="bet-btn active" onclick="selectBet(10,this)">10 pts</button>
+          <button class="bet-btn" onclick="selectBet(25,this)">25 pts</button>
+          <button class="bet-btn" onclick="selectBet(50,this)">50 pts</button>
+          <button class="bet-btn" onclick="selectBet(100,this)">100 pts</button>
+        </div>
+        <div class="wheel-wrap">
+          <div class="wheel-pointer">▼</div>
+          <canvas id="wheelCanvas" width="220" height="220"></canvas>
+        </div>
+        <div class="spin-result" id="spinResult"></div>
+        <div class="spin-points">Tus puntos: <span id="spinPoints">0</span></div>
+        <button class="spin-btn" id="spinBtn" onclick="doSpin()">🎰 GIRAR</button>
+      </div>
+
+      <div id="spinOverlayEnd" class="game-overlay hidden">
+        <div class="result-text" id="spinEndResult">—</div>
+        <p style="color:var(--text2);font-size:0.75rem;margin-bottom:10px" id="spinEndMsg"></p>
+        <button class="start-btn" onclick="startSpin()">🔄 JUGAR DE NUEVO</button>
+      </div>
+    </div>
+    <div class="reset-timer" id="spinReset"></div>
+  </div>
+
+  <!-- ===== STORE ===== -->
+  <div id="game-store" class="game-panel hidden">
+    <div class="game-header">
+      <div class="game-title">🛒 TIENDA MIDAS</div>
+      <div class="mds-balance" id="storeMdsBalance">0.0000 MDS</div>
+    </div>
+    <div class="game-body">
+      <p style="font-size:0.75rem;color:var(--text2);margin-bottom:14px;font-family:Share Tech Mono,monospace">
+        Gasta tus MDS en items que potencian tu juego.
+      </p>
+      <div class="store-grid" id="storeGrid"></div>
+    </div>
+  </div>
+
+  <!-- ===== TOKEN INFO ===== -->
+  <div id="game-info" class="game-panel hidden">
+    <div class="game-header">
+      <div class="game-title">📊 MIDAS TOKEN</div>
+    </div>
+    <div class="game-body">
+      <div class="info-section">
+        <div class="info-title">TOKENOMICS</div>
+        <div class="token-info-grid">
+          <div class="token-info-card">
+            <div class="ti-label">NOMBRE</div>
+            <div class="ti-value">Midas Token</div>
+          </div>
+          <div class="token-info-card">
+            <div class="ti-label">TICKER</div>
+            <div class="ti-value">MDS</div>
+          </div>
+          <div class="token-info-card">
+            <div class="ti-label">SUPPLY TOTAL</div>
+            <div class="ti-value">30,000,000</div>
+          </div>
+          <div class="token-info-card">
+            <div class="ti-label">RED</div>
+            <div class="ti-value">BNB Chain</div>
+          </div>
+          <div class="token-info-card">
+            <div class="ti-label">LIQUIDEZ</div>
+            <div class="ti-value">12,000,000</div>
+          </div>
+          <div class="token-info-card">
+            <div class="ti-label">REWARDS</div>
+            <div class="ti-value">6,000,000</div>
+          </div>
+        </div>
+      </div>
+      <div class="info-section">
+        <div class="info-title">CONTRATO</div>
+        <div style="background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:12px;">
+          <div style="font-family:Share Tech Mono,monospace;font-size:0.65rem;color:var(--accent);word-break:break-all">
+            0x117a10966C5ad72aDF14f21d7845D85860c2Df9d
+          </div>
+          <div style="font-size:0.65rem;color:var(--text2);margin-top:6px">BNB Smart Chain (BSCScan verificado ✅)</div>
+        </div>
+      </div>
+      <div class="info-section">
+        <div class="info-title">CÓMO GANAR MDS</div>
+        <div style="font-size:0.75rem;color:var(--text2);line-height:1.8;font-family:Share Tech Mono,monospace">
+          • Cada 10 niveles en cualquier juego = 0.1 MDS<br>
+          • 4 juegos × 15 niveles = 60 niveles totales<br>
+          • Máximo 6 MDS si completas todo<br>
+          • Los niveles se reinician cada 24h<br>
+          • Usa MDS en la tienda para items
+        </div>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ============================================================
+// STATE
+// ============================================================
+const MDS_CONTRACT = '0x117a10966C5ad72aDF14f21d7845D85860c2Df9d';
+
+let state = {
+  points: 0,
+  mds: 0,
+  totalLevels: 0,
+  wallet: null,
+  lastReset: null,
+  games: {
+    clicker:  { level:1, completedToday:false },
+    goldrush: { level:1, completedToday:false },
+    puzzle:   { level:1, completedToday:false },
+    spin:     { level:1, completedToday:false },
+  },
+  inventory: [],
+};
+
+// Load from localStorage
+function loadState() {
+  try {
+    const s = localStorage.getItem('playmidasState');
+    if (s) {
+      const parsed = JSON.parse(s);
+      // Check daily reset
+      const today = new Date().toDateString();
+      if (parsed.lastReset !== today) {
+        parsed.games.clicker.completedToday  = false;
+        parsed.games.goldrush.completedToday = false;
+        parsed.games.puzzle.completedToday   = false;
+        parsed.games.spin.completedToday     = false;
+        parsed.lastReset = today;
+      }
+      state = { ...state, ...parsed };
+    } else {
+      state.lastReset = new Date().toDateString();
+    }
+  } catch(e) {}
+}
+
+function saveState() {
+  localStorage.setItem('playmidasState', JSON.stringify(state));
+  updateUI();
+}
+
+function updateUI() {
+  document.getElementById('statPoints').textContent  = state.points.toLocaleString();
+  document.getElementById('statLevel').textContent   = state.totalLevels;
+  document.getElementById('statMDS').textContent     = state.mds.toFixed(1);
+  document.getElementById('headerBalance').textContent = state.mds.toFixed(4) + ' MDS';
+  document.getElementById('storeMdsBalance').textContent = state.mds.toFixed(4) + ' MDS';
+  if (state.wallet) {
+    document.getElementById('walletBtn').textContent = state.wallet.slice(0,6)+'...'+state.wallet.slice(-4);
+  }
+  renderStore();
+}
+
+// ============================================================
+// WALLET
+// ============================================================
+async function connectWallet() {
+  if (typeof window.ethereum === 'undefined') {
+    showToast('Instala MetaMask para conectar', 'error'); return;
+  }
+  try {
+    const accounts = await window.ethereum.request({ method:'eth_requestAccounts' });
+    state.wallet = accounts[0];
+    saveState();
+    showToast('Wallet conectada ✓', 'success');
+  } catch(e) {
+    showToast('Error al conectar wallet', 'error');
+  }
+}
+
+// ============================================================
+// TABS
+// ============================================================
+function showTab(tab) {
+  const panels = ['clicker','goldrush','puzzle','spin','store','info'];
+  panels.forEach(p => {
+    const el = document.getElementById('game-' + p);
+    el && el.classList.add('hidden');
+  });
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.remove('active'));
+  const tabMap = ['clicker','goldrush','puzzle','spin','store','info'];
+  const idx = tabMap.indexOf(tab);
+  document.getElementById('game-' + tab)?.classList.remove('hidden');
+  document.querySelectorAll('.tab-btn')[idx]?.classList.add('active');
+}
+
+// ============================================================
+// LEVEL UP LOGIC
+// ============================================================
+function levelUp(game) {
+  state.games[game].level++;
+  state.totalLevels++;
+  state.points += 50;
+  if (state.totalLevels % 10 === 0) {
+    state.mds += 0.1;
+    showToast('🎉 +0.1 MDS ganado! Total: ' + state.mds.toFixed(1), 'success');
+  }
+  saveState();
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg, type='') {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+
+// ============================================================
+// TIMER UTILITY
+// ============================================================
+function createTimer(seconds, fillId, labelId, onTick, onEnd) {
+  let remaining = seconds;
+  const fill = document.getElementById(fillId);
+  const label = document.getElementById(labelId);
+  const id = setInterval(() => {
+    remaining--;
+    const pct = (remaining / seconds) * 100;
+    fill.style.width = pct + '%';
+    if (remaining <= 10) fill.classList.add('danger');
+    label.textContent = remaining + 's';
+    onTick && onTick(remaining);
+    if (remaining <= 0) { clearInterval(id); onEnd && onEnd(); }
+  }, 1000);
+  return id;
+}
+
+// ============================================================
+// GAME 1: MIDAS CLICKER
+// ============================================================
+let clickerState = { running:false, clicks:0, needed:60, timer:null, obstacles:[], level:1 };
+
+function getClickerConfig(level) {
+  return {
+    needed: 40 + level * 20,
+    obstacles: Math.min(level - 1, 5),
+    speed: level,
+  };
+}
+
+function startClicker() {
+  const g = state.games.clicker;
+  clickerState.level = g.level;
+  if (g.level > 15) { showToast('¡Completaste todos los niveles de Clicker! Reinicia mañana.'); return; }
+
+  const cfg = getClickerConfig(clickerState.level);
+  clickerState.clicks = 0;
+  clickerState.needed = cfg.needed;
+  clickerState.obstacles = [];
+  clickerState.running = true;
+
+  document.getElementById('clickerOverlayStart').classList.add('hidden');
+  document.getElementById('clickerOverlayEnd').classList.add('hidden');
+  document.getElementById('clickerGame').classList.remove('hidden');
+  document.getElementById('clickerLevelBadge').textContent = 'LVL ' + clickerState.level;
+  document.getElementById('clickCount').textContent = '0';
+  document.getElementById('clicksNeeded').textContent = 'Necesitas: ' + cfg.needed + ' clicks';
+  document.getElementById('clickerProgressFill').style.width = '0%';
+  document.getElementById('clickerLevelProgress').textContent = '0 / ' + cfg.needed;
+  document.getElementById('clickerTimerFill').classList.remove('danger');
+
+  // Spawn obstacles
+  const obstacleList = document.getElementById('obstacleList');
+  obstacleList.innerHTML = '';
+  for (let i = 0; i < cfg.obstacles; i++) {
+    spawnObstacle(obstacleList);
+  }
+
+  if (clickerState.timer) clearInterval(clickerState.timer);
+  clickerState.timer = createTimer(45, 'clickerTimerFill', 'clickerTimer', null, () => {
+    if (clickerState.running) endClicker(false);
+  });
+}
+
+function spawnObstacle(container) {
+  const obstacles = ['💀 -10pts', '🕳️ -5pts', '⛔ Pausa', '🐌 Lento'];
+  const o = document.createElement('div');
+  o.className = 'obstacle';
+  o.textContent = obstacles[Math.floor(Math.random()*obstacles.length)];
+  o.onclick = (e) => {
+    e.stopPropagation();
+    if (o.textContent.includes('-10')) state.points = Math.max(0, state.points-10);
+    if (o.textContent.includes('-5'))  state.points = Math.max(0, state.points-5);
+    if (o.textContent.includes('Pausa')) { clickerState.running=false; setTimeout(()=>{ clickerState.running=true; },2000); showToast('¡Pausa de 2s!','error'); }
+    o.remove();
+    updateUI();
+  };
+  container.appendChild(o);
+}
+
+function handleCoinClick(e) {
+  if (!clickerState.running) return;
+  clickerState.clicks++;
+  state.points++;
+
+  // Float animation
+  const btn = document.getElementById('coinBtn');
+  const rect = btn.getBoundingClientRect();
+  const fp = document.createElement('div');
+  fp.className = 'float-point';
+  fp.textContent = '+1';
+  fp.style.left = (e.clientX - rect.left - 10) + 'px';
+  fp.style.top  = (e.clientY - rect.top - 20) + 'px';
+  btn.parentElement.appendChild(fp);
+  setTimeout(() => fp.remove(), 800);
+
+  const pct = Math.min((clickerState.clicks / clickerState.needed)*100, 100);
+  document.getElementById('clickCount').textContent = clickerState.clicks;
+  document.getElementById('clickerProgressFill').style.width = pct + '%';
+  document.getElementById('clickerLevelProgress').textContent = clickerState.clicks + ' / ' + clickerState.needed;
+
+  if (clickerState.clicks >= clickerState.needed) {
+    clearInterval(clickerState.timer);
+    endClicker(true);
+  }
+  updateUI();
+}
+
+function endClicker(won) {
+  clickerState.running = false;
+  clearInterval(clickerState.timer);
+  document.getElementById('clickerGame').classList.add('hidden');
+  document.getElementById('clickerOverlayEnd').classList.remove('hidden');
+  const res = document.getElementById('clickerResult');
+  const msg = document.getElementById('clickerResultMsg');
+  if (won) {
+    res.className = 'result-text win'; res.textContent = '✅ NIVEL COMPLETADO';
+    msg.textContent = 'Nivel ' + clickerState.level + ' superado. +50 puntos';
+    levelUp('clicker');
+    document.getElementById('clickerLevelBadge').textContent = 'LVL ' + state.games.clicker.level;
+  } else {
+    res.className = 'result-text lose'; res.textContent = '❌ TIEMPO AGOTADO';
+    msg.textContent = 'Intenta de nuevo. Clicks: ' + clickerState.clicks + '/' + clickerState.needed;
+  }
+}
+
+// ============================================================
+// GAME 2: GOLD RUSH
+// ============================================================
+let rushState = { running:false, coins:0, target:10, timer:null, level:1, spawnId:null };
+
+function startRush() {
+  const g = state.games.goldrush;
+  rushState.level = g.level;
+  if (g.level > 15) { showToast('¡Completaste Gold Rush! Reinicia mañana.'); return; }
+
+  rushState.coins = 0;
+  rushState.target = 8 + rushState.level * 2;
+  rushState.running = true;
+
+  document.getElementById('rushOverlayStart').classList.add('hidden');
+  document.getElementById('rushOverlayEnd').classList.add('hidden');
+  document.getElementById('rushGame').classList.remove('hidden');
+  document.getElementById('rushLevelBadge').textContent = 'LVL ' + rushState.level;
+  document.getElementById('rushCoins').textContent = '0';
+  document.getElementById('rushTarget').textContent = rushState.target;
+  document.getElementById('rushTimerFill').classList.remove('danger');
+
+  const arena = document.getElementById('rushArena');
+  arena.innerHTML = '';
+
+  if (rushState.spawnId) clearInterval(rushState.spawnId);
+  const spawnRate = Math.max(400, 1200 - rushState.level * 60);
+  rushState.spawnId = setInterval(() => {
+    if (!rushState.running) return;
+    spawnRushItem(arena);
+  }, spawnRate);
+
+  if (rushState.timer) clearInterval(rushState.timer);
+  rushState.timer = createTimer(45, 'rushTimerFill', 'rushTimer', null, () => {
+    if (rushState.running) endRush(false);
+  });
+}
+
+function spawnRushItem(arena) {
+  const trapChance = 0.25 + rushState.level * 0.03;
+  const isTrap = Math.random() < trapChance;
+  const item = document.createElement('div');
+  item.className = 'falling-item';
+  item.textContent = isTrap ? '💣' : '🪙';
+  item.style.left = Math.random() * 80 + '%';
+  item.style.top = '0px';
+  item.dataset.trap = isTrap;
+
+  const speed = 1500 + Math.random()*500 - rushState.level*80;
+  item.style.transition = `top ${Math.max(600,speed)}ms linear`;
+  arena.appendChild(item);
+  setTimeout(() => { item.style.top = '260px'; }, 50);
+  setTimeout(() => { item.remove(); }, Math.max(650,speed)+100);
+
+  item.onclick = (e) => {
+    e.stopPropagation();
+    if (!rushState.running) return;
+    if (item.dataset.trap === 'true') {
+      item.style.fontSize = '2.5rem';
+      setTimeout(() => item.remove(), 300);
+      rushState.coins = Math.max(0, rushState.coins - 2);
+      state.points = Math.max(0, state.points - 5);
+      showToast('💣 -5 puntos!', 'error');
+    } else {
+      item.remove();
+      rushState.coins++;
+      state.points += 3;
+      document.getElementById('rushCoins').textContent = rushState.coins;
+      if (rushState.coins >= rushState.target) {
+        clearInterval(rushState.spawnId);
+        clearInterval(rushState.timer);
+        endRush(true);
+      }
+    }
+    updateUI();
+  };
+}
+
+function endRush(won) {
+  rushState.running = false;
+  clearInterval(rushState.timer);
+  clearInterval(rushState.spawnId);
+  document.getElementById('rushGame').classList.add('hidden');
+  document.getElementById('rushOverlayEnd').classList.remove('hidden');
+  const res = document.getElementById('rushResult');
+  const msg = document.getElementById('rushResultMsg');
+  if (won) {
+    res.className='result-text win'; res.textContent='✅ NIVEL COMPLETADO';
+    msg.textContent='Monedas recogidas: '+rushState.coins+'. +50 puntos';
+    levelUp('goldrush');
+    document.getElementById('rushLevelBadge').textContent='LVL '+state.games.goldrush.level;
+  } else {
+    res.className='result-text lose'; res.textContent='❌ TIEMPO AGOTADO';
+    msg.textContent='Monedas: '+rushState.coins+'/'+rushState.target+'. Intenta de nuevo.';
+  }
+}
+
+// ============================================================
+// GAME 3: MIDAS PUZZLE (2048)
+// ============================================================
+let puzzleState = { running:false, grid:[], score:0, timer:null, level:1, attempts:5, target:64, startX:0, startY:0 };
+
+function getPuzzleTarget(level) {
+  const targets = [64,128,128,256,256,256,512,512,512,1024,1024,1024,2048,2048,2048];
+  return targets[Math.min(level-1, targets.length-1)];
+}
+
+function startPuzzle() {
+  const g = state.games.puzzle;
+  puzzleState.level = g.level;
+  if (g.level > 15) { showToast('¡Completaste el Puzzle! Reinicia mañana.'); return; }
+
+  puzzleState.score = 0;
+  puzzleState.attempts = 5;
+  puzzleState.target = getPuzzleTarget(puzzleState.level);
+  puzzleState.grid = Array(16).fill(0);
+  puzzleState.running = true;
+
+  addPuzzleTile(); addPuzzleTile();
+
+  document.getElementById('puzzleOverlayStart').classList.add('hidden');
+  document.getElementById('puzzleOverlayEnd').classList.add('hidden');
+  document.getElementById('puzzleGame').classList.remove('hidden');
+  document.getElementById('puzzleLevelBadge').textContent = 'LVL ' + puzzleState.level;
+  document.getElementById('puzzleTarget').textContent = puzzleState.target;
+  document.getElementById('puzzleAttempts').textContent = puzzleState.attempts;
+  document.getElementById('puzzleScore').textContent = '0';
+  document.getElementById('puzzleTimerFill').classList.remove('danger');
+
+  renderPuzzleGrid();
+
+  if (puzzleState.timer) clearInterval(puzzleState.timer);
+  puzzleState.timer = createTimer(60, 'puzzleTimerFill', 'puzzleTimer', null, () => {
+    if (puzzleState.running) endPuzzle(false, 'Tiempo agotado');
+  });
+
+  // Touch/swipe
+  const grid = document.getElementById('puzzleGrid');
+  grid.ontouchstart = (e) => { puzzleState.startX=e.touches[0].clientX; puzzleState.startY=e.touches[0].clientY; };
+  grid.ontouchend   = (e) => {
+    const dx = e.changedTouches[0].clientX - puzzleState.startX;
+    const dy = e.changedTouches[0].clientY - puzzleState.startY;
+    if (Math.abs(dx) > Math.abs(dy)) { if (dx>30) movePuzzle('right'); else if (dx<-30) movePuzzle('left'); }
+    else { if (dy>30) movePuzzle('down'); else if (dy<-30) movePuzzle('up'); }
+  };
+}
+
+function addPuzzleTile() {
+  const empty = puzzleState.grid.reduce((a,v,i)=>v===0?[...a,i]:a,[]);
+  if (!empty.length) return;
+  const idx = empty[Math.floor(Math.random()*empty.length)];
+  puzzleState.grid[idx] = Math.random()<0.9 ? 2 : 4;
+}
+
+function renderPuzzleGrid() {
+  const grid = document.getElementById('puzzleGrid');
+  grid.innerHTML = '';
+  puzzleState.grid.forEach(v => {
+    const cell = document.createElement('div');
+    cell.className = 'puzzle-cell cell-' + Math.min(v, 2048);
+    cell.textContent = v || '';
+    grid.appendChild(cell);
+  });
+  document.getElementById('puzzleScore').textContent = puzzleState.score;
+}
+
+function movePuzzle(dir) {
+  if (!puzzleState.running) return;
+  const prev = JSON.stringify(puzzleState.grid);
+  let g = [...puzzleState.grid];
+  const size = 4;
+
+  function slideRow(row) {
+    let r = row.filter(x=>x);
+    for (let i=0;i<r.length-1;i++) {
+      if (r[i]===r[i+1]) { r[i]*=2; puzzleState.score+=r[i]; r.splice(i+1,1); i++; }
+    }
+    while (r.length<size) r.push(0);
+    return r;
+  }
+
+  if (dir==='left')  { for(let r=0;r<4;r++) { const row=g.slice(r*4,r*4+4); const s=slideRow(row); for(let c=0;c<4;c++) g[r*4+c]=s[c]; } }
+  if (dir==='right') { for(let r=0;r<4;r++) { const row=g.slice(r*4,r*4+4).reverse(); const s=slideRow(row).reverse(); for(let c=0;c<4;c++) g[r*4+c]=s[c]; } }
+  if (dir==='up')    { for(let c=0;c<4;c++) { const col=[g[c],g[4+c],g[8+c],g[12+c]]; const s=slideRow(col); for(let r=0;r<4;r++) g[r*4+c]=s[r]; } }
+  if (dir==='down')  { for(let c=0;c<4;c++) { const col=[g[c],g[4+c],g[8+c],g[12+c]].reverse(); const s=slideRow(col).reverse(); for(let r=0;r<4;r++) g[r*4+c]=s[r]; } }
+
+  if (JSON.stringify(g)!==prev) {
+    puzzleState.grid=g;
+    addPuzzleTile();
+    renderPuzzleGrid();
+    // Check win
+    if (g.includes(puzzleState.target)) { clearInterval(puzzleState.timer); endPuzzle(true,''); return; }
+    // Check no moves
+    const hasEmpty = g.includes(0);
+    if (!hasEmpty) {
+      puzzleState.attempts--;
+      document.getElementById('puzzleAttempts').textContent = puzzleState.attempts;
+      if (puzzleState.attempts<=0) { clearInterval(puzzleState.timer); endPuzzle(false,'Sin intentos'); return; }
+      // Reset grid for next attempt
+      puzzleState.grid = Array(16).fill(0);
+      addPuzzleTile(); addPuzzleTile();
+      renderPuzzleGrid();
+      showToast('Sin movimientos. Intento -1','error');
+    }
+  }
+}
+
+// Keyboard for desktop
+document.addEventListener('keydown', e => {
+  const map = {ArrowLeft:'left',ArrowRight:'right',ArrowUp:'up',ArrowDown:'down'};
+  if (map[e.key]) { e.preventDefault(); movePuzzle(map[e.key]); }
+});
+
+function endPuzzle(won, reason) {
+  puzzleState.running = false;
+  clearInterval(puzzleState.timer);
+  document.getElementById('puzzleGame').classList.add('hidden');
+  document.getElementById('puzzleOverlayEnd').classList.remove('hidden');
+  const res = document.getElementById('puzzleResult');
+  const msg = document.getElementById('puzzleResultMsg');
+  if (won) {
+    res.className='result-text win'; res.textContent='✅ NIVEL COMPLETADO';
+    msg.textContent='Alcanzaste '+puzzleState.target+'! Score: '+puzzleState.score+'. +50 puntos';
+    levelUp('puzzle');
+    document.getElementById('puzzleLevelBadge').textContent='LVL '+state.games.puzzle.level;
+  } else {
+    res.className='result-text lose'; res.textContent='❌ '+reason.toUpperCase();
+    msg.textContent='Meta: '+puzzleState.target+'. Score: '+puzzleState.score+'. Intenta de nuevo.';
+  }
+}
+
+// ============================================================
+// GAME 4: FORTUNE SPIN
+// ============================================================
+let spinState = { running:false, spinning:false, bet:10, timer:null, level:1, spinsLeft:0, rotation:0 };
+const WHEEL_SEGMENTS = [
+  { label:'2x', color:'#00d4ff', mult:2 },
+  { label:'LOSE', color:'#ff4466', mult:0 },
+  { label:'1.5x', color:'#00ff88', mult:1.5 },
+  { label:'LOSE', color:'#ff4466', mult:0 },
+  { label:'3x', color:'#ffd700', mult:3 },
+  { label:'LOSE', color:'#ff4466', mult:0 },
+  { label:'1x', color:'#7744ff', mult:1 },
+  { label:'LOSE', color:'#ff4466', mult:0 },
+];
+
+function drawWheel() {
+  const canvas = document.getElementById('wheelCanvas');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const cx=110, cy=110, r=105;
+  const seg = (2*Math.PI)/WHEEL_SEGMENTS.length;
+  WHEEL_SEGMENTS.forEach((s,i) => {
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r, i*seg-Math.PI/2, (i+1)*seg-Math.PI/2);
+    ctx.fillStyle = s.color+'33';
+    ctx.fill();
+    ctx.strokeStyle = s.color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.save();
+    ctx.translate(cx,cy);
+    ctx.rotate(i*seg + seg/2 - Math.PI/2);
+    ctx.textAlign='center';
+    ctx.font = 'bold 13px Orbitron,monospace';
+    ctx.fillStyle = s.color;
+    ctx.fillText(s.label, 70, 5);
+    ctx.restore();
+  });
+  // Center
+  ctx.beginPath();
+  ctx.arc(cx,cy,18,0,2*Math.PI);
+  ctx.fillStyle='#0a1520';
+  ctx.fill();
+  ctx.strokeStyle='#ffd700';
+  ctx.lineWidth=3;
+  ctx.stroke();
+}
+
+function startSpin() {
+  const g = state.games.spin;
+  spinState.level = g.level;
+  if (g.level > 15) { showToast('¡Completaste Fortune Spin! Reinicia mañana.'); return; }
+
+  spinState.spinning = false;
+  spinState.running = true;
+  spinState.spinsLeft = 5 + spinState.level;
+  spinState.rotation = 0;
+
+  document.getElementById('spinOverlayStart').classList.add('hidden');
+  document.getElementById('spinOverlayEnd').classList.add('hidden');
+  document.getElementById('spinGame').classList.remove('hidden');
+  document.getElementById('spinLevelBadge').textContent = 'LVL ' + spinState.level;
+  document.getElementById('spinResult').textContent = '';
+  document.getElementById('spinPoints').textContent = state.points;
+  document.getElementById('spinTimerFill').classList.remove('danger');
+
+  drawWheel();
+
+  if (spinState.timer) clearInterval(spinState.timer);
+  spinState.timer = createTimer(45, 'spinTimerFill', 'spinTimer', null, () => {
+    if (spinState.running) endSpinGame(state.points > 0);
+  });
+}
+
+function selectBet(amount, btn) {
+  spinState.bet = amount;
+  document.querySelectorAll('.bet-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+function doSpin() {
+  if (spinState.spinning || !spinState.running) return;
+  if (state.points < spinState.bet) { showToast('No tienes suficientes puntos','error'); return; }
+  spinState.spinning = true;
+  document.getElementById('spinBtn').disabled = true;
+
+  const canvas = document.getElementById('wheelCanvas');
+  const seg = 360 / WHEEL_SEGMENTS.length;
+  const spins = 5 + Math.random()*3;
+  const extra = Math.floor(Math.random()*WHEEL_SEGMENTS.length)*seg + Math.random()*seg;
+  const totalRot = spins*360 + extra;
+  spinState.rotation += totalRot;
+
+  canvas.style.transition = 'transform 3s cubic-bezier(0.17,0.67,0.12,0.99)';
+  canvas.style.transform = `rotate(${spinState.rotation}deg)`;
+
+  setTimeout(() => {
+    const normalizedAngle = ((spinState.rotation % 360) + 360) % 360;
+    const idx = Math.floor(((360 - normalizedAngle + seg/2) % 360) / seg) % WHEEL_SEGMENTS.length;
+    const segment = WHEEL_SEGMENTS[idx];
+
+    const won = state.points - spinState.bet + Math.floor(spinState.bet * segment.mult);
+    state.points = Math.max(0, won);
+
+    const resEl = document.getElementById('spinResult');
+    if (segment.mult === 0) {
+      resEl.style.color = 'var(--red)';
+      resEl.textContent = '💥 ' + segment.label + ' — -' + spinState.bet + ' pts';
+    } else {
+      resEl.style.color = segment.color;
+      resEl.textContent = '🎯 ' + segment.label + ' — +' + Math.floor(spinState.bet*(segment.mult-1)) + ' pts';
+    }
+    document.getElementById('spinPoints').textContent = state.points;
+    spinState.spinning = false;
+    spinState.spinsLeft--;
+    document.getElementById('spinBtn').disabled = false;
+    updateUI();
+    if (spinState.spinsLeft <= 0) { clearInterval(spinState.timer); endSpinGame(true); }
+  }, 3100);
+}
+
+function endSpinGame(won) {
+  spinState.running = false;
+  clearInterval(spinState.timer);
+  document.getElementById('spinGame').classList.add('hidden');
+  document.getElementById('spinOverlayEnd').classList.remove('hidden');
+  const res = document.getElementById('spinEndResult');
+  const msg = document.getElementById('spinEndMsg');
+  if (won) {
+    res.className='result-text win'; res.textContent='✅ NIVEL COMPLETADO';
+    msg.textContent='Puntos acumulados: '+state.points+'. +50 puntos bonus';
+    state.points += 50;
+    levelUp('spin');
+    document.getElementById('spinLevelBadge').textContent='LVL '+state.games.spin.level;
+  } else {
+    res.className='result-text lose'; res.textContent='❌ SIN PUNTOS';
+    msg.textContent='Intenta de nuevo y administra mejor tu apuesta.';
+  }
+  saveState();
+}
+
+// ============================================================
+// STORE
+// ============================================================
+const STORE_ITEMS = [
+  { id:'booster_clicker', icon:'⚡', name:'Click Turbo', desc:'Doble puntos en Midas Clicker por 24h', price:0.5, effect:'clicker_2x' },
+  { id:'shield_rush',     icon:'🛡️', name:'Gold Shield', desc:'Las trampas no te restan puntos en Gold Rush', price:0.3, effect:'rush_shield' },
+  { id:'extra_time',      icon:'⏱️', name:'Time+15',     desc:'+15 segundos en todos los juegos (una vez)', price:0.8, effect:'extra_time' },
+  { id:'puzzle_hint',     icon:'💡', name:'Puzzle Pro',  desc:'+2 intentos extra en el Puzzle por 24h', price:0.4, effect:'puzzle_attempts' },
+  { id:'spin_lucky',      icon:'🍀', name:'Lucky Spin',  desc:'Elimina 2 casillas LOSE de la ruleta por 24h', price:0.6, effect:'spin_lucky' },
+  { id:'points_pack',     icon:'💎', name:'500 Puntos',  desc:'Pack instantáneo de 500 puntos de juego', price:0.2, effect:'points_500' },
+];
+
+function renderStore() {
+  const grid = document.getElementById('storeGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  STORE_ITEMS.forEach(item => {
+    const owned = state.inventory.includes(item.id);
+    const canAfford = state.mds >= item.price;
+    const div = document.createElement('div');
+    div.className = 'store-item';
+    div.innerHTML = `
+      <div class="item-icon">${item.icon}</div>
+      <div class="item-name">${item.name}</div>
+      <div class="item-desc">${item.desc}</div>
+      <div class="item-price">${item.price} MDS</div>
+      ${owned
+        ? '<div class="owned-badge">✓ ACTIVADO</div>'
+        : `<button class="buy-btn" ${!canAfford?'disabled':''} onclick="buyItem('${item.id}','${item.effect}',${item.price})">COMPRAR</button>`
+      }
+    `;
+    grid.appendChild(div);
+  });
+}
+
+function buyItem(id, effect, price) {
+  if (state.mds < price) { showToast('MDS insuficientes','error'); return; }
+  state.mds -= price;
+  state.inventory.push(id);
+  if (effect === 'points_500') { state.points += 500; state.inventory = state.inventory.filter(i=>i!==id); }
+  saveState();
+  showToast('¡Item activado! 🎉','success');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+loadState();
+updateUI();
+</script>
+</body>
+</html>
