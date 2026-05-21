@@ -1105,6 +1105,7 @@ async function saveStateToFirestore(uid) {
   if (!window._db || !uid) return;
   try {
     await window._db.collection('users').doc(uid).set({ state: JSON.stringify(state), updatedAt: new Date().toISOString() }, { merge: true });
+    console.log('Firestore saved: level', state.games.clicker.level, 'mds', state.mds);
   } catch(e) { console.warn('Firestore save error', e); }
 }
 
@@ -1122,7 +1123,20 @@ async function loadStateFromFirestore(uid) {
         parsed.games.spin.completedToday     = false;
         parsed.lastReset = today;
       }
-      state = { ...state, ...parsed };
+      // Full replacement - not shallow merge
+      state.points      = parsed.points      ?? state.points;
+      state.mds         = parsed.mds         ?? state.mds;
+      state.totalLevels = parsed.totalLevels ?? state.totalLevels;
+      state.wallet      = parsed.wallet      ?? state.wallet;
+      state.lastReset   = parsed.lastReset   ?? state.lastReset;
+      state.inventory   = parsed.inventory   ?? state.inventory;
+      if (parsed.games) {
+        state.games.clicker  = parsed.games.clicker  ?? state.games.clicker;
+        state.games.goldrush = parsed.games.goldrush ?? state.games.goldrush;
+        state.games.puzzle   = parsed.games.puzzle   ?? state.games.puzzle;
+        state.games.spin     = parsed.games.spin     ?? state.games.spin;
+      }
+      console.log('Firestore loaded: level', state.games.clicker.level, 'mds', state.mds);
       return true;
     }
   } catch(e) { console.warn('Firestore load error', e.code, e.message); }
@@ -1145,8 +1159,19 @@ function initFirebaseAuth() {
     currentUser = user;
     updateAuthUI(user);
     if (user) {
-      const loaded = await loadStateFromFirestore(user.uid);
-      if (!loaded) loadStateLocal();
+      // Reset state to defaults before loading from Firestore
+      state = {
+        points: 0, mds: 0, totalLevels: 0, wallet: null,
+        lastReset: new Date().toDateString(),
+        games: {
+          clicker:  { level:1, completedToday:false },
+          goldrush: { level:1, completedToday:false },
+          puzzle:   { level:1, completedToday:false },
+          spin:     { level:1, completedToday:false },
+        },
+        inventory: [],
+      };
+      await loadStateFromFirestore(user.uid);
       updateUI();
       document.getElementById('authOverlay').classList.add('hidden');
       showToast('Bienvenido ' + (user.displayName || user.email.split('@')[0]) + ' ✓', 'success');
@@ -1876,9 +1901,9 @@ async function saveWalletAddress() {
 // ============================================================
 // INIT
 // ============================================================
-loadState();
+// Don't load localStorage on init - Firebase is source of truth
+state.lastReset = new Date().toDateString();
 updateUI();
-// Init Firebase auth
 initFirebaseAuth();
 </script>
 </body>
