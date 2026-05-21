@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="40%" r="55%">
+      <stop offset="0%" stop-color="#0f1e35"/>
+      <stop offset="100%" stop-color="#030810"/>
+    </radialGradient>
+    <linearGradient id="rim" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffe97a"/>
+      <stop offset="50%" stop-color="#ffd700"/>
+      <stop offset="100%" stop-color="#ffe566"/>
+    </linearGradient>
+    <linearGradient id="cr" x1="15%" y1="0%" x2="85%" y2="100%">
+      <stop offset="0%" stop-color="#fff8c0"/>
+      <stop offset="40%" stop-color="#ffd700"/>
+      <stop offset="100%" stop-color="#8a5a00"/>
+    </linearGradient>
+  </defs>
+  <circle cx="50" cy="50" r="49" fill="url(#rim)"/>
+  <circle cx="50" cy="50" r="46" fill="url(#bg)"/>
+  <!-- Crown base -->
+  <rect x="18" y="52" width="64" height="12" rx="2" fill="url(#cr)"/>
+  <!-- Left outer point -->
+  <polygon points="20,52 27,30 35,52" fill="url(#cr)"/>
+  <!-- Left inner point -->
+  <polygon points="33,52 40,38 47,52" fill="url(#cr)"/>
+  <!-- Center point -->
+  <polygon points="44,52 50,22 56,52" fill="url(#cr)"/>
+  <!-- Right inner point -->
+  <polygon points="53,52 60,38 67,52" fill="url(#cr)"/>
+  <!-- Right outer point -->
+  <polygon points="65,52 73,30 80,52" fill="url(#cr)"/>
+  <!-- Gems -->
+  <circle cx="27" cy="29" r="3.5" fill="#ffd700" stroke="#0a1520" stroke-width="1"/>
+  <circle cx="40" cy="37" r="3" fill="#ffd700" stroke="#0a1520" stroke-width="1"/>
+  <circle cx="50" cy="21" r="4" fill="#ffd700" stroke="#0a1520" stroke-width="1"/>
+  <circle cx="60" cy="37" r="3" fill="#ffd700" stroke="#0a1520" stroke-width="1"/>
+  <circle cx="73" cy="29" r="3.5" fill="#ffd700" stroke="#0a1520" stroke-width="1"/>
+  <!-- MDS text -->
+  <text x="50" y="82" text-anchor="middle" font-family="monospace" font-weight="900" font-size="14" fill="#ffd700" letter-spacing="1">MDS</text>
+</svg>
