@@ -132,18 +132,18 @@
 
     /* TABS */
     .tabs {
-      display: flex; gap:8px; margin-bottom:16px;
-      overflow-x: auto; padding-bottom:4px;
+      display: flex; gap:6px; margin-bottom:16px;
+      flex-wrap: wrap;
     }
-    .tabs::-webkit-scrollbar { display:none; }
     .tab-btn {
       font-family: 'Share Tech Mono', monospace;
-      font-size: 0.75rem; letter-spacing:1px;
-      padding: 8px 16px; border-radius:6px;
+      font-size: 0.72rem; letter-spacing:1px;
+      padding: 7px 12px; border-radius:6px;
       border: 1px solid var(--border);
       background: var(--panel); color: var(--text2);
       cursor:pointer; white-space:nowrap;
       transition: all 0.2s;
+      flex-shrink: 0;
     }
     .tab-btn.active {
       border-color: var(--accent);
@@ -517,6 +517,7 @@
     }
     .toast.success { border-color:var(--accent2); color:var(--accent2); background:rgba(0,255,136,0.1); }
     .toast.error { border-color:var(--red); color:var(--red); background:rgba(255,68,102,0.1); }
+    .toast.launch { border-color:var(--gold); color:var(--gold); background:rgba(255,215,0,0.1); }
     @keyframes toast-in { from { opacity:0; transform:translateX(-50%) translateY(10px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
 
     /* RESET TIMER */
@@ -703,7 +704,7 @@
     <div id="authHeaderArea">
       <button class="login-btn" onclick="openAuthModal()">LOGIN</button>
     </div>
-    <button class="wallet-btn" id="walletBtn" onclick="showToast('Disponible en el lanzamiento del token 🚀','')" title="Disponible en el lanzamiento">🚀 LAUNCH</button>
+    <button class="wallet-btn" id="walletBtn" onclick="showToast('🚀 Token MDS — Disponible el 21 de julio 2026','launch')" title="Disponible en el lanzamiento">🚀 LAUNCH</button>
   </div>
 </header>
 
@@ -1103,7 +1104,7 @@ async function fbLogout() {
 async function saveStateToFirestore(uid) {
   if (!window._db || !uid) return;
   try {
-    await window._db.collection('users').doc(uid).set({ state: JSON.stringify(state) });
+    await window._db.collection('users').doc(uid).set({ state: JSON.stringify(state), updatedAt: new Date().toISOString() }, { merge: true });
   } catch(e) { console.warn('Firestore save error', e); }
 }
 
@@ -1124,7 +1125,7 @@ async function loadStateFromFirestore(uid) {
       state = { ...state, ...parsed };
       return true;
     }
-  } catch(e) { console.warn('Firestore load error', e); }
+  } catch(e) { console.warn('Firestore load error', e.code, e.message); }
   return false;
 }
 
@@ -1440,8 +1441,8 @@ function spawnRushItem(arena) {
   setTimeout(() => { item.style.top = '260px'; }, 50);
   setTimeout(() => { item.remove(); }, Math.max(650,speed)+100);
 
-  item.onclick = (e) => {
-    e.stopPropagation();
+  function handleRushItem(e) {
+    e.stopPropagation(); e.preventDefault();
     if (!rushState.running) return;
     if (item.dataset.trap === 'true') {
       item.style.fontSize = '2.5rem';
@@ -1461,7 +1462,9 @@ function spawnRushItem(arena) {
       }
     }
     updateUI();
-  };
+  }
+  item.onclick = handleRushItem;
+  item.ontouchstart = handleRushItem;
 }
 
 function endRush(won) {
@@ -1522,14 +1525,20 @@ function startPuzzle() {
     if (puzzleState.running) endPuzzle(false, 'Tiempo agotado');
   });
 
-  // Touch/swipe
-  const grid = document.getElementById('puzzleGrid');
-  grid.ontouchstart = (e) => { puzzleState.startX=e.touches[0].clientX; puzzleState.startY=e.touches[0].clientY; };
-  grid.ontouchend   = (e) => {
-    const dx = e.changedTouches[0].clientX - puzzleState.startX;
-    const dy = e.changedTouches[0].clientY - puzzleState.startY;
-    if (Math.abs(dx) > Math.abs(dy)) { if (dx>30) movePuzzle('right'); else if (dx<-30) movePuzzle('left'); }
-    else { if (dy>30) movePuzzle('down'); else if (dy<-30) movePuzzle('up'); }
+  // Touch/swipe - attach to document to avoid scroll interference
+  document.ontouchstart = (e) => {
+    if (!puzzleState.running) return;
+    puzzleState.startX = e.touches[0].clientX;
+    puzzleState.startY = e.touches[0].clientY;
+  };
+  document.ontouchend = (e) => {
+    if (!puzzleState.running) return;
+    const dx = e.changedTouches[0].clientX - (puzzleState.startX||0);
+    const dy = e.changedTouches[0].clientY - (puzzleState.startY||0);
+    if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+    e.preventDefault();
+    if (Math.abs(dx) > Math.abs(dy)) { if (dx>20) movePuzzle('right'); else if (dx<-20) movePuzzle('left'); }
+    else { if (dy>20) movePuzzle('down'); else if (dy<-20) movePuzzle('up'); }
   };
 }
 
