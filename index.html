@@ -10,32 +10,21 @@
   <meta property="og:description" content="Juega y gana tokens MIDAS (MDS). Play-to-Earn en BNB Chain.">
   <meta name="theme-color" content="#050a0f">
   <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
-  <!-- Firebase SDKs -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged }
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, setDoc, getDoc }
-      from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-
-    const firebaseConfig = {
+  <!-- Firebase SDKs (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+    firebase.initializeApp({
       apiKey: "AIzaSyB2ghfcetumyI0sAr1jKFgGGp7a-JHAAkY",
       authDomain: "playmidas-391d3.firebaseapp.com",
       projectId: "playmidas-391d3",
       storageBucket: "playmidas-391d3.firebasestorage.app",
       messagingSenderId: "787818165756",
-      appId: "1:787818165756:web:e8e554866e8537e4b56e79",
-      measurementId: "G-PF7YC39B88"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    // Expose to global scope for use in inline scripts
-    window._fb = { auth, db, googleProvider, doc, setDoc, getDoc,
-      createUserWithEmailAndPassword, signInWithEmailAndPassword,
-      signInWithPopup, signOut, onAuthStateChanged };
+      appId: "1:787818165756:web:e8e554866e8537e4b56e79"
+    });
+    window._auth = firebase.auth();
+    window._db   = firebase.firestore();
   </script>
   <style>
     :root {
@@ -1078,24 +1067,25 @@ function toggleAuthMode() {
 }
 
 async function fbEmailAuth() {
-  const fb = window._fb;
-  if (!fb) { showToast('Firebase cargando...', 'error'); return; }
+  const auth = window._auth;
+  if (!auth) { showToast('Firebase cargando...', 'error'); return; }
   const email = document.getElementById('authEmail').value.trim();
   const pass  = document.getElementById('authPassword').value;
   const errEl = document.getElementById('authError');
   errEl.textContent = '';
+  if (!email || !pass) { errEl.textContent = 'Completa email y contraseña'; return; }
   try {
     if (authMode === 'login') {
-      await fb.signInWithEmailAndPassword(fb.auth, email, pass);
+      await auth.signInWithEmailAndPassword(email, pass);
     } else {
-      await fb.createUserWithEmailAndPassword(fb.auth, email, pass);
+      await auth.createUserWithEmailAndPassword(email, pass);
     }
-    closeAuthModal();
   } catch(e) {
     const msgs = {
       'auth/invalid-email': 'Email inválido',
       'auth/user-not-found': 'Usuario no encontrado',
       'auth/wrong-password': 'Contraseña incorrecta',
+      'auth/invalid-credential': 'Email o contraseña incorrectos',
       'auth/email-already-in-use': 'Email ya registrado',
       'auth/weak-password': 'Contraseña muy corta (mín 6 chars)',
     };
@@ -1103,21 +1093,8 @@ async function fbEmailAuth() {
   }
 }
 
-async function fbGoogleAuth() {
-  const fb = window._fb;
-  if (!fb) { showToast('Firebase cargando...', 'error'); return; }
-  try {
-    await fb.signInWithPopup(fb.auth, fb.googleProvider);
-    closeAuthModal();
-  } catch(e) {
-    document.getElementById('authError').textContent = e.message;
-  }
-}
-
 async function fbLogout() {
-  const fb = window._fb;
-  if (!fb) return;
-  await fb.signOut(fb.auth);
+  await window._auth.signOut();
   currentUser = null;
   updateAuthUI(null);
   document.getElementById('authOverlay').classList.remove('hidden');
@@ -1125,19 +1102,17 @@ async function fbLogout() {
 }
 
 async function saveStateToFirestore(uid) {
-  const fb = window._fb;
-  if (!fb || !uid) return;
+  if (!window._db || !uid) return;
   try {
-    await fb.setDoc(fb.doc(fb.db, 'users', uid), { state: JSON.stringify(state) });
+    await window._db.collection('users').doc(uid).set({ state: JSON.stringify(state) });
   } catch(e) { console.warn('Firestore save error', e); }
 }
 
 async function loadStateFromFirestore(uid) {
-  const fb = window._fb;
-  if (!fb || !uid) return false;
+  if (!window._db || !uid) return false;
   try {
-    const snap = await fb.getDoc(fb.doc(fb.db, 'users', uid));
-    if (snap.exists()) {
+    const snap = await window._db.collection('users').doc(uid).get();
+    if (snap.exists) {
       const parsed = JSON.parse(snap.data().state);
       const today = new Date().toDateString();
       if (parsed.lastReset !== today) {
@@ -1165,11 +1140,9 @@ function updateAuthUI(user) {
   }
 }
 
-// Init Firebase auth listener — runs after module loads
 function initFirebaseAuth() {
-  const fb = window._fb;
-  if (!fb) { setTimeout(initFirebaseAuth, 300); return; }
-  fb.onAuthStateChanged(fb.auth, async (user) => {
+  if (!window._auth) { setTimeout(initFirebaseAuth, 200); return; }
+  window._auth.onAuthStateChanged(async (user) => {
     currentUser = user;
     updateAuthUI(user);
     if (user) {
@@ -1181,6 +1154,7 @@ function initFirebaseAuth() {
     }
   });
 }
+
 
 // Load from localStorage (fallback when not logged in)
 function loadStateLocal() {
