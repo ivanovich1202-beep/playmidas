@@ -1222,6 +1222,11 @@ function updateUI() {
   }
   renderStore();
   updateWithdrawUI();
+  // Sync level badges with saved state
+  document.getElementById('clickerLevelBadge').textContent = 'LVL ' + state.games.clicker.level;
+  document.getElementById('rushLevelBadge').textContent    = 'LVL ' + state.games.goldrush.level;
+  document.getElementById('puzzleLevelBadge').textContent  = 'LVL ' + state.games.puzzle.level;
+  document.getElementById('spinLevelBadge').textContent    = 'LVL ' + state.games.spin.level;
 }
 
 // ============================================================
