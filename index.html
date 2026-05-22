@@ -727,7 +727,7 @@
     .mds-register-banner-btn:hover { transform: translateY(-1px); }
 
     /* HIDDEN */
-    .hidden { display:none !important; }
+    .hidden { display:none !important; pointer-events:none !important; visibility:hidden !important; }
 
     /* RESPONSIVE */
     @media(max-width:400px) {
@@ -1985,8 +1985,10 @@ function updateCountdown() {
   const els = document.querySelectorAll('#launchCountdown, #launchCountdown2');
   els.forEach(el => { if(el) el.textContent = txt; });
 }
-setInterval(updateCountdown, 1000);
-updateCountdown();
+document.addEventListener("DOMContentLoaded", function() {
+  setInterval(updateCountdown, 1000);
+  updateCountdown();
+});
 
 // ============================================================
 // WITHDRAW / WALLET REGISTER
@@ -2027,8 +2029,8 @@ async function saveWalletAddress() {
 // ============================================================
 // INIT
 // ============================================================
-// Don't load localStorage on init - Firebase is source of truth
-state.lastReset = new Date().toDateString();
+// Load local state for guest users - Firebase overwrites on login
+loadStateLocal();
 updateUI();
 initFirebaseAuth();
 </script>
