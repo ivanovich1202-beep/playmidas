@@ -668,6 +668,45 @@
     .login-btn:hover { background:rgba(0,212,255,0.1); }
     .user-display { font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--text2); max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
+
+    /* ANIMATED REGISTER BANNER */
+    @keyframes pulse-border {
+      0%, 100% { border-color: rgba(255,215,0,0.4); box-shadow: 0 0 8px rgba(255,215,0,0.2); }
+      50% { border-color: rgba(255,215,0,0.9); box-shadow: 0 0 20px rgba(255,215,0,0.5), 0 0 40px rgba(255,215,0,0.2); }
+    }
+    @keyframes pulse-btn {
+      0%, 100% { transform: scale(1); box-shadow: 0 0 8px rgba(255,215,0,0.4); }
+      50% { transform: scale(1.05); box-shadow: 0 0 20px rgba(255,215,0,0.8); }
+    }
+    .register-banner-animated {
+      background: linear-gradient(135deg, rgba(255,215,0,0.1), rgba(255,140,0,0.08));
+      border: 2px solid rgba(255,215,0,0.4);
+      border-radius: 12px;
+      padding: 14px 16px;
+      margin-bottom: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      animation: pulse-border 2s ease-in-out infinite;
+    }
+    .register-banner-animated .rba-text {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.75rem; color: var(--gold); line-height: 1.5;
+    }
+    .register-banner-animated .rba-text span {
+      color: var(--text2); font-size: 0.65rem;
+    }
+    .register-banner-animated .rba-btn {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.7rem; font-weight: 900; letter-spacing: 1px;
+      background: linear-gradient(135deg, #ffd700, #ff8800);
+      color: #000; border: none; cursor: pointer;
+      padding: 10px 16px; border-radius: 8px;
+      white-space: nowrap; flex-shrink: 0;
+      animation: pulse-btn 2s ease-in-out infinite;
+    }
+
     /* REGISTER BANNER */
     .register-banner {
       background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(0,212,255,0.06));
@@ -791,15 +830,6 @@
     </div>
   </div>
 
-  <!-- REGISTER BANNER -->
-  <div class="register-banner" id="registerBanner">
-    <div class="register-banner-text">
-      🪙 ¿Quieres ganar tokens MDS reales?<br>
-      <span style="color:var(--text2);font-size:0.65rem">Regístrate gratis · Guarda tu progreso · Token lanza en menos de 60 días</span>
-    </div>
-    <button class="register-banner-btn" onclick="openAuthModal()">REGÍSTRATE</button>
-  </div>
-
   <!-- LAUNCH BANNER -->
   <div class="launch-banner">
     <div class="launch-label">🚀 Token MDS — Lanzamiento en</div>
@@ -822,6 +852,15 @@
     <button class="tab-btn" onclick="showTab('store')">🛒 Tienda</button>
     <button class="tab-btn" onclick="showTab('info')">📊 Token</button>
     <button class="tab-btn" onclick="showTab('withdraw')">💸 Retiro</button>
+  </div>
+
+  <!-- ANIMATED REGISTER BANNER -->
+  <div class="register-banner-animated" id="registerBanner">
+    <div class="rba-text">
+      🪙 <strong>¿Quieres ganar MDS reales?</strong><br>
+      <span>Regístrate gratis · Guarda tu progreso · Token lanza en 59 días</span>
+    </div>
+    <button class="rba-btn" onclick="openAuthModal()">🚀 UNIRME</button>
   </div>
 
   <!-- ===== GAME 1: MIDAS CLICKER ===== -->
