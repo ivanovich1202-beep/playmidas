@@ -710,18 +710,50 @@
 </head>
 <body>
 
+<!-- WELCOME SCREEN -->
+<div class="auth-overlay" id="welcomeScreen">
+  <div class="auth-modal" style="max-width:400px">
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:900;color:var(--accent)">PLAY<span style="color:var(--gold)">MIDAS</span></div>
+      <div style="font-size:0.65rem;color:var(--text2);letter-spacing:3px;margin-top:4px">PLAY · EARN · WIN</div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px">
+      <div style="background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:4px">🎮</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:0.68rem;color:var(--accent)">4 Minijuegos</div>
+        <div style="font-size:0.62rem;color:var(--text2);margin-top:2px">Clicker, Memory,<br>Gold Rush, Spin</div>
+      </div>
+      <div style="background:rgba(255,215,0,0.06);border:1px solid rgba(255,215,0,0.2);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:4px">🪙</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:0.68rem;color:var(--gold)">Gana MDS</div>
+        <div style="font-size:0.62rem;color:var(--text2);margin-top:2px">0.1 MDS cada<br>10 niveles</div>
+      </div>
+      <div style="background:rgba(0,255,136,0.06);border:1px solid rgba(0,255,136,0.2);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:4px">🚀</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:0.68rem;color:var(--green)">Token en 60 días</div>
+        <div style="font-size:0.62rem;color:var(--text2);margin-top:2px">Lanzamiento en<br>PancakeSwap</div>
+      </div>
+      <div style="background:rgba(0,212,255,0.06);border:1px solid rgba(0,212,255,0.2);border-radius:10px;padding:12px;text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:4px">✅</div>
+        <div style="font-family:'Share Tech Mono',monospace;font-size:0.68rem;color:var(--accent)">100% Gratis</div>
+        <div style="font-size:0.62rem;color:var(--text2);margin-top:2px">Sin inversión<br>requerida</div>
+      </div>
+    </div>
+    <button class="auth-btn" onclick="showAuthFromWelcome()" style="font-size:0.85rem;padding:14px">🎮 JUGAR GRATIS</button>
+    <div style="font-family:'Share Tech Mono',monospace;font-size:0.62rem;color:var(--text2);text-align:center;margin-top:10px">Solo necesitas tu email · Sin tarjeta de crédito</div>
+  </div>
+</div>
+
 <!-- AUTH MODAL -->
-<div class="auth-overlay" id="authOverlay">
+<div class="auth-overlay hidden" id="authOverlay">
   <div class="auth-modal">
-    <div class="auth-title" id="authTitle">INICIAR SESIÓN</div>
+    <div class="auth-title" id="authTitle">CREAR CUENTA</div>
     <div style="font-family:'Share Tech Mono',monospace;font-size:0.68rem;color:var(--text2);text-align:center;margin-bottom:12px;line-height:1.5">Regístrate gratis para jugar y<br>acumular tokens MDS 🚀</div>
     <div class="auth-error" id="authError"></div>
     <input class="auth-input" id="authEmail" type="email" placeholder="Email" autocomplete="email" />
     <input class="auth-input" id="authPassword" type="password" placeholder="Contraseña" autocomplete="current-password" />
     <button class="auth-btn" onclick="fbEmailAuth()">▶ ENTRAR</button>
-
-    
-    <div class="auth-switch" id="authSwitch">¿No tienes cuenta? <span onclick="toggleAuthMode()">Regístrate</span></div>
+    <div class="auth-switch" id="authSwitch">¿Ya tienes cuenta? <span onclick="toggleAuthMode()">Inicia sesión</span></div>
   </div>
 </div>
 
@@ -1077,6 +1109,14 @@ let state = {
 let currentUser = null;
 let authMode = 'login'; // 'login' | 'register'
 
+function showAuthFromWelcome() {
+  document.getElementById('welcomeScreen').classList.add('hidden');
+  document.getElementById('authOverlay').classList.remove('hidden');
+  authMode = 'register';
+  document.getElementById('authTitle').textContent = 'CREAR CUENTA';
+  document.getElementById('authSwitch').innerHTML = '¿Ya tienes cuenta? <span onclick="toggleAuthMode()">Inicia sesión</span>';
+}
+
 function openAuthModal() {
   document.getElementById('authOverlay').classList.remove('hidden');
   document.getElementById('authError').textContent = '';
@@ -1125,7 +1165,7 @@ async function fbLogout() {
   await window._auth.signOut();
   currentUser = null;
   updateAuthUI(null);
-  document.getElementById('authOverlay').classList.remove('hidden');
+  document.getElementById('welcomeScreen').classList.remove('hidden');
   showToast('Sesión cerrada', 'success');
 }
 
@@ -1202,6 +1242,7 @@ function initFirebaseAuth() {
       await loadStateFromFirestore(user.uid);
       updateUI();
       document.getElementById('authOverlay').classList.add('hidden');
+      document.getElementById('welcomeScreen').classList.add('hidden');
       showToast('Bienvenido ' + (user.displayName || user.email.split('@')[0]) + ' ✓', 'success');
     }
   });
