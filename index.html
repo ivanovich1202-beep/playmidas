@@ -132,18 +132,17 @@
 
     /* TABS */
     .tabs {
-      display: flex; gap:8px; margin-bottom:16px;
-      overflow-x: auto; padding-bottom:4px;
+      display: flex; gap:6px; margin-bottom:16px;
+      flex-wrap: wrap;
     }
-    .tabs::-webkit-scrollbar { display:none; }
     .tab-btn {
       font-family: 'Share Tech Mono', monospace;
-      font-size: 0.75rem; letter-spacing:1px;
-      padding: 8px 16px; border-radius:6px;
+      font-size: 0.7rem; letter-spacing:1px;
+      padding: 7px 12px; border-radius:6px;
       border: 1px solid var(--border);
       background: var(--panel); color: var(--text2);
       cursor:pointer; white-space:nowrap;
-      transition: all 0.2s;
+      transition: all 0.2s; flex-shrink:0;
     }
     .tab-btn.active {
       border-color: var(--accent);
@@ -1194,9 +1193,13 @@ async function loadStateFromFirestore(uid) {
       const today = new Date().toDateString();
       if (parsed.lastReset !== today) {
         parsed.games.clicker.completedToday  = false;
+        parsed.games.clicker.level  = 1;
         parsed.games.goldrush.completedToday = false;
+        parsed.games.goldrush.level = 1;
         parsed.games.puzzle.completedToday   = false;
+        parsed.games.puzzle.level   = 1;
         parsed.games.spin.completedToday     = false;
+        parsed.games.spin.level     = 1;
         parsed.lastReset = today;
       }
       state.points      = parsed.points      ?? state.points;
@@ -1264,9 +1267,13 @@ function loadStateLocal() {
       const today = new Date().toDateString();
       if (parsed.lastReset !== today) {
         parsed.games.clicker.completedToday  = false;
+        parsed.games.clicker.level  = 1;
         parsed.games.goldrush.completedToday = false;
+        parsed.games.goldrush.level = 1;
         parsed.games.puzzle.completedToday   = false;
+        parsed.games.puzzle.level   = 1;
         parsed.games.spin.completedToday     = false;
+        parsed.games.spin.level     = 1;
         parsed.lastReset = today;
       }
       state = { ...state, ...parsed };
