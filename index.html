@@ -690,6 +690,42 @@
     .login-btn:hover { background:rgba(0,212,255,0.1); }
     .user-display { font-family:'Share Tech Mono',monospace; font-size:0.7rem; color:var(--text2); max-width:90px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
+
+    /* MDS REGISTER BANNER */
+    .mds-register-banner {
+      background: linear-gradient(135deg, rgba(255,215,0,0.08), rgba(0,212,255,0.06));
+      border: 1px solid rgba(255,215,0,0.3);
+      border-radius: 10px;
+      padding: 10px 16px;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .mds-register-banner-text {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.72rem;
+      color: var(--gold);
+      line-height: 1.4;
+    }
+    .mds-register-banner-btn {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 1px;
+      background: linear-gradient(135deg, var(--gold), #aa7700);
+      color: #000;
+      border: none;
+      cursor: pointer;
+      padding: 8px 14px;
+      border-radius: 6px;
+      white-space: nowrap;
+      transition: all 0.2s;
+      flex-shrink: 0;
+    }
+    .mds-register-banner-btn:hover { transform: translateY(-1px); }
+
     /* HIDDEN */
     .hidden { display:none !important; }
 
@@ -711,7 +747,7 @@
 <body>
 
 <!-- WELCOME SCREEN -->
-<div class="auth-overlay" id="welcomeScreen">
+<div class="auth-overlay hidden" id="welcomeScreen">
   <div class="auth-modal" style="max-width:400px">
     <div style="text-align:center;margin-bottom:16px">
       <div style="font-family:'Orbitron',monospace;font-size:1.3rem;font-weight:900;color:var(--accent)">PLAY<span style="color:var(--gold)">MIDAS</span></div>
@@ -783,6 +819,15 @@
       <div class="stat-label">MDS Ganados</div>
       <div class="stat-value green" id="statMDS">0.0</div>
     </div>
+  </div>
+
+  <!-- REGISTER BANNER -->
+  <div class="mds-register-banner" id="registerBanner">
+    <div class="mds-register-banner-text">
+      🪙 ¿Quieres ganar tokens MDS reales?<br>
+      <span style="color:var(--text2);font-size:0.65rem">Regístrate gratis y guarda tu progreso · Lanzamiento en menos de 60 días</span>
+    </div>
+    <button class="mds-register-banner-btn" onclick="openAuthModal()">REGÍSTRATE</button>
   </div>
 
   <!-- LAUNCH BANNER -->
@@ -1165,7 +1210,7 @@ async function fbLogout() {
   await window._auth.signOut();
   currentUser = null;
   updateAuthUI(null);
-  document.getElementById('welcomeScreen').classList.remove('hidden');
+  const rb = document.getElementById('registerBanner'); if(rb) rb.classList.remove('hidden');
   showToast('Sesión cerrada', 'success');
 }
 
@@ -1227,6 +1272,7 @@ function initFirebaseAuth() {
     currentUser = user;
     updateAuthUI(user);
     if (user) {
+      const rb = document.getElementById('registerBanner'); if(rb) rb.classList.add('hidden');
       // Reset state to defaults before loading from Firestore
       state = {
         points: 0, mds: 0, totalLevels: 0, wallet: null,
@@ -1243,6 +1289,7 @@ function initFirebaseAuth() {
       updateUI();
       document.getElementById('authOverlay').classList.add('hidden');
       document.getElementById('welcomeScreen').classList.add('hidden');
+      const rb = document.getElementById('registerBanner'); if(rb) rb.classList.add('hidden');
       showToast('Bienvenido ' + (user.displayName || user.email.split('@')[0]) + ' ✓', 'success');
     }
   });
