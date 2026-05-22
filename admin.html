@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PlayMidas — Admin</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet"/>
+  <!-- Firebase SDKs (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+  <script>
+    firebase.initializeApp({
+      apiKey: "AIzaSyB2ghfcetumyI0sAr1jKFgGGp7a-JHAAkY",
+      authDomain: "playmidas-391d3.firebaseapp.com",
+      projectId: "playmidas-391d3",
+      storageBucket: "playmidas-391d3.firebasestorage.app",
+      messagingSenderId: "787818165756",
+      appId: "1:787818165756:web:e8e554866e8537e4b56e79"
+    });
+    window._auth = firebase.auth();
+    window._db   = firebase.firestore();
+  </script>
+  <style>
+    :root {
+      --bg:     #050a0f;
+      --bg2:    #0a1520;
+      --bg3:    #0f1e2e;
+      --panel:  #0d1e2f;
+      --border: #1a3a5c;
+      --accent: #00d4ff;
+      --gold:   #ffd700;
+      --green:  #00ff88;
+      --red:    #ff4466;
+      --text:   #c8e0f0;
+      --text2:  #6a9ab8;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      min-height: 100vh;
+    }
+    body::before {
+      content:'';
+      position:fixed; inset:0;
+      background-image:
+        linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+      background-size: 40px 40px;
+      pointer-events:none; z-index:0;
+    }
+
+    /* LOGIN */
+    .login-screen {
+      position:fixed; inset:0; z-index:100;
+      display:flex; align-items:center; justify-content:center;
+      background: rgba(5,10,15,0.97);
+    }
+    .login-box {
+      background: var(--bg2);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 40px 32px;
+      width: 100%; max-width: 360px;
+      text-align: center;
+    }
+    .login-logo {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.4rem; font-weight: 900;
+      color: var(--accent);
+      letter-spacing: 3px;
+      margin-bottom: 4px;
+    }
+    .login-logo span { color: var(--gold); }
+    .login-sub {
+      font-size: 0.7rem; color: var(--text2);
+      letter-spacing: 2px; margin-bottom: 28px;
+    }
+    .login-input {
+      width: 100%; background: var(--bg3);
+      border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text); font-family: 'Share Tech Mono', monospace;
+      font-size: 0.85rem; padding: 12px 14px;
+      margin-bottom: 10px; outline: none;
+      transition: border-color 0.2s;
+    }
+    .login-input:focus { border-color: var(--accent); }
+    .login-btn {
+      width: 100%; font-family: 'Orbitron', monospace;
+      font-size: 0.8rem; font-weight: 700; letter-spacing: 2px;
+      background: linear-gradient(135deg, var(--accent), #006688);
+      color: #000; border: none; cursor: pointer;
+      padding: 13px; border-radius: 8px; margin-top: 4px;
+      transition: all 0.2s;
+    }
+    .login-btn:hover { transform: translateY(-1px); box-shadow: 0 0 20px rgba(0,212,255,0.4); }
+    .login-error { color: var(--red); font-size: 0.72rem; margin-top: 8px; min-height: 16px; }
+
+    /* HEADER */
+    header {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(5,10,15,0.95);
+      border-bottom: 1px solid var(--border);
+      backdrop-filter: blur(10px);
+      padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .header-logo {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.1rem; font-weight: 900;
+      color: var(--accent); letter-spacing: 2px;
+    }
+    .header-logo span { color: var(--gold); }
+    .header-badge {
+      font-size: 0.65rem; color: var(--text2);
+      background: rgba(0,212,255,0.08);
+      border: 1px solid var(--border);
+      padding: 4px 10px; border-radius: 4px;
+      letter-spacing: 2px;
+    }
+    .logout-btn {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem; color: var(--red);
+      background: transparent; border: 1px solid var(--red);
+      padding: 6px 12px; border-radius: 6px;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .logout-btn:hover { background: rgba(255,68,102,0.1); }
+
+    /* MAIN */
+    main { position: relative; z-index: 1; padding: 24px; max-width: 1200px; margin: 0 auto; }
+
+    /* STATS GRID */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 16px; margin-bottom: 24px;
+    }
+    .stat-card {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px; padding: 20px;
+      text-align: center;
+    }
+    .stat-card.gold { border-color: rgba(255,215,0,0.3); }
+    .stat-card.green { border-color: rgba(0,255,136,0.3); }
+    .stat-card.accent { border-color: rgba(0,212,255,0.3); }
+    .stat-label {
+      font-size: 0.62rem; color: var(--text2);
+      text-transform: uppercase; letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .stat-value {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.8rem; font-weight: 900;
+      color: var(--accent);
+    }
+    .stat-value.gold { color: var(--gold); }
+    .stat-value.green { color: var(--green); }
+
+    /* TOOLBAR */
+    .toolbar {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 16px; flex-wrap: wrap;
+    }
+    .search-input {
+      background: var(--bg2); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.8rem; padding: 9px 14px;
+      outline: none; width: 260px;
+      transition: border-color 0.2s;
+    }
+    .search-input:focus { border-color: var(--accent); }
+    .filter-btn {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 0.7rem; padding: 8px 14px;
+      border-radius: 6px; border: 1px solid var(--border);
+      background: var(--panel); color: var(--text2);
+      cursor: pointer; transition: all 0.2s;
+    }
+    .filter-btn.active {
+      border-color: var(--accent); color: var(--accent);
+      background: rgba(0,212,255,0.08);
+    }
+    .refresh-btn {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 1px;
+      background: linear-gradient(135deg, var(--gold), #aa7700);
+      color: #000; border: none; cursor: pointer;
+      padding: 9px 18px; border-radius: 6px;
+      transition: all 0.2s; margin-left: auto;
+    }
+    .refresh-btn:hover { transform: translateY(-1px); }
+    .export-btn {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.65rem; font-weight: 700; letter-spacing: 1px;
+      background: linear-gradient(135deg, var(--green), #007744);
+      color: #000; border: none; cursor: pointer;
+      padding: 9px 18px; border-radius: 6px;
+      transition: all 0.2s;
+    }
+    .export-btn:hover { transform: translateY(-1px); }
+
+    /* TABLE */
+    .table-wrap {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 14px; overflow: hidden;
+    }
+    .table-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .table-title {
+      font-family: 'Orbitron', monospace;
+      font-size: 0.8rem; color: var(--accent); letter-spacing: 1px;
+    }
+    .user-count {
+      font-size: 0.7rem; color: var(--text2);
+    }
+    table {
+      width: 100%; border-collapse: collapse;
+    }
+    th {
+      font-size: 0.62rem; color: var(--text2);
+      text-transform: uppercase; letter-spacing: 2px;
+      padding: 12px 20px; text-align: left;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,0.2);
+    }
+    td {
+      padding: 14px 20px; font-size: 0.78rem;
+      border-bottom: 1px solid rgba(26,58,92,0.4);
+      vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: rgba(0,212,255,0.03); }
+    .td-email { color: var(--text); }
+    .td-mds {
+      font-family: 'Orbitron', monospace;
+      font-weight: 700; color: var(--gold);
+    }
+    .td-levels { color: var(--accent); font-weight: 700; }
+    .td-points { color: var(--text2); }
+    .td-wallet {
+      font-size: 0.68rem; color: var(--text2);
+      max-width: 140px; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+    }
+    .td-wallet.registered { color: var(--green); }
+    .td-date { color: var(--text2); font-size: 0.7rem; }
+    .mds-bar-wrap { display: flex; align-items: center; gap: 8px; }
+    .mds-bar {
+      height: 4px; background: var(--bg3);
+      border-radius: 2px; width: 60px; flex-shrink: 0;
+    }
+    .mds-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--gold), #ff8800);
+      border-radius: 2px;
+    }
+    .badge {
+      display: inline-block; font-size: 0.6rem;
+      padding: 2px 7px; border-radius: 3px;
+      letter-spacing: 1px; font-weight: 700;
+    }
+    .badge-ready { background: rgba(0,255,136,0.15); color: var(--green); border: 1px solid rgba(0,255,136,0.3); }
+    .badge-pending { background: rgba(255,215,0,0.1); color: var(--gold); border: 1px solid rgba(255,215,0,0.3); }
+    .badge-new { background: rgba(0,212,255,0.1); color: var(--accent); border: 1px solid rgba(0,212,255,0.3); }
+
+    /* LOADING */
+    .loading {
+      text-align: center; padding: 60px;
+      color: var(--text2); font-size: 0.8rem;
+    }
+    .loading-dot {
+      display: inline-block;
+      animation: blink 1s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.2} }
+
+    /* EMPTY */
+    .empty { text-align: center; padding: 60px; color: var(--text2); }
+
+    /* TOAST */
+    .toast {
+      position: fixed; bottom: 24px; right: 24px;
+      background: rgba(0,212,255,0.15);
+      border: 1px solid var(--accent);
+      color: var(--accent);
+      font-size: 0.8rem; padding: 12px 20px;
+      border-radius: 8px; z-index: 999;
+      animation: fadein 0.3s ease;
+    }
+    .toast.success { border-color: var(--green); color: var(--green); background: rgba(0,255,136,0.1); }
+    @keyframes fadein { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+    @media(max-width:900px) {
+      .stats-grid { grid-template-columns: repeat(2,1fr); }
+      .search-input { width: 100%; }
+      td, th { padding: 10px 12px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-box">
+    <div class="login-logo">PLAY<span>MIDAS</span></div>
+    <div class="login-sub">ADMIN PANEL</div>
+    <input class="login-input" id="adminEmail" type="email" placeholder="Email admin" autocomplete="email"/>
+    <input class="login-input" id="adminPass" type="password" placeholder="Contraseña" autocomplete="current-password"/>
+    <button class="login-btn" onclick="adminLogin()">▶ ENTRAR</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- HEADER -->
+<header id="mainHeader" style="display:none">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="header-logo">PLAY<span>MIDAS</span></div>
+    <div class="header-badge">ADMIN</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:12px">
+    <span style="font-size:0.7rem;color:var(--text2)" id="adminEmailDisplay"></span>
+    <button class="logout-btn" onclick="adminLogout()">SALIR</button>
+  </div>
+</header>
+
+<main id="mainContent" style="display:none">
+
+  <!-- STATS -->
+  <div class="stats-grid">
+    <div class="stat-card accent">
+      <div class="stat-label">Usuarios Registrados</div>
+      <div class="stat-value" id="statUsers">—</div>
+    </div>
+    <div class="stat-card gold">
+      <div class="stat-label">MDS Totales Acumulados</div>
+      <div class="stat-value gold" id="statMDS">—</div>
+    </div>
+    <div class="stat-card green">
+      <div class="stat-label">Wallets Registradas</div>
+      <div class="stat-value green" id="statWallets">—</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Listos para Retiro (≥5 MDS)</div>
+      <div class="stat-value" id="statReady">—</div>
+    </div>
+  </div>
+
+  <!-- TOOLBAR -->
+  <div class="toolbar">
+    <input class="search-input" id="searchInput" type="text" placeholder="🔍 Buscar por email o wallet..." oninput="filterUsers()"/>
+    <button class="filter-btn active" id="filterAll" onclick="setFilter('all')">Todos</button>
+    <button class="filter-btn" id="filterReady" onclick="setFilter('ready')">≥5 MDS</button>
+    <button class="filter-btn" id="filterWallet" onclick="setFilter('wallet')">Con Wallet</button>
+    <button class="export-btn" onclick="exportCSV()">⬇ EXPORTAR CSV</button>
+    <button class="refresh-btn" onclick="loadUsers()">↻ ACTUALIZAR</button>
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-wrap">
+    <div class="table-header">
+      <div class="table-title">📊 USUARIOS PLAYMIDAS</div>
+      <div class="user-count" id="userCount">Cargando...</div>
+    </div>
+    <div id="tableContent">
+      <div class="loading">Cargando usuarios <span class="loading-dot">...</span></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+const ADMIN_EMAIL = 'ivanovich1202@gmail.com'; // solo este email puede entrar
+
+let allUsers = [];
+let currentFilter = 'all';
+
+// ── AUTH ──────────────────────────────────────────────────────
+async function adminLogin() {
+  const email = document.getElementById('adminEmail').value.trim();
+  const pass  = document.getElementById('adminPass').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+
+  if (email !== ADMIN_EMAIL) {
+    errEl.textContent = 'Acceso no autorizado'; return;
+  }
+  try {
+    await window._auth.signInWithEmailAndPassword(email, pass);
+  } catch(e) {
+    const msgs = {
+      'auth/wrong-password': 'Contraseña incorrecta',
+      'auth/invalid-credential': 'Email o contraseña incorrectos',
+      'auth/user-not-found': 'Usuario no encontrado',
+    };
+    errEl.textContent = msgs[e.code] || e.message;
+  }
+}
+
+async function adminLogout() {
+  await window._auth.signOut();
+}
+
+window._auth.onAuthStateChanged(user => {
+  if (user && user.email === ADMIN_EMAIL) {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('mainHeader').style.display = 'flex';
+    document.getElementById('mainContent').style.display = 'block';
+    document.getElementById('adminEmailDisplay').textContent = user.email;
+    loadUsers();
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('mainHeader').style.display = 'none';
+    document.getElementById('mainContent').style.display = 'none';
+  }
+});
+
+// ── LOAD USERS ────────────────────────────────────────────────
+async function loadUsers() {
+  document.getElementById('tableContent').innerHTML = '<div class="loading">Cargando usuarios <span class="loading-dot">...</span></div>';
+  try {
+    const snap = await window._db.collection('users').get();
+    allUsers = [];
+    snap.forEach(doc => {
+      try {
+        const data = JSON.parse(doc.data().state || '{}');
+        allUsers.push({
+          uid: doc.id,
+          email: data.email || '—',
+          mds: parseFloat(data.mds || 0),
+          points: parseInt(data.points || 0),
+          totalLevels: parseInt(data.totalLevels || 0),
+          wallet: data.wallet || null,
+          lastReset: data.lastReset || null,
+          updatedAt: doc.data().updatedAt || null,
+          games: data.games || {}
+        });
+      } catch(e) {}
+    });
+
+    // Try to get emails from auth - not possible directly, skip
+    updateStats();
+    renderTable();
+    showToast('Datos actualizados ✓', 'success');
+  } catch(e) {
+    document.getElementById('tableContent').innerHTML = '<div class="empty">Error cargando datos: ' + e.message + '</div>';
+  }
+}
+
+function updateStats() {
+  const total    = allUsers.length;
+  const totalMDS = allUsers.reduce((s,u) => s + u.mds, 0);
+  const wallets  = allUsers.filter(u => u.wallet).length;
+  const ready    = allUsers.filter(u => u.mds >= 5).length;
+
+  document.getElementById('statUsers').textContent   = total;
+  document.getElementById('statMDS').textContent     = totalMDS.toFixed(2);
+  document.getElementById('statWallets').textContent = wallets;
+  document.getElementById('statReady').textContent   = ready;
+}
+
+// ── FILTER ────────────────────────────────────────────────────
+function setFilter(f) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('filter' + f.charAt(0).toUpperCase() + f.slice(1)).classList.add('active');
+  renderTable();
+}
+
+function filterUsers() { renderTable(); }
+
+function getFiltered() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  return allUsers.filter(u => {
+    const matchSearch = !q ||
+      (u.uid && u.uid.toLowerCase().includes(q)) ||
+      (u.wallet && u.wallet.toLowerCase().includes(q)) ||
+      (u.email && u.email.toLowerCase().includes(q));
+    const matchFilter =
+      currentFilter === 'all' ||
+      (currentFilter === 'ready' && u.mds >= 5) ||
+      (currentFilter === 'wallet' && u.wallet);
+    return matchSearch && matchFilter;
+  }).sort((a,b) => b.mds - a.mds);
+}
+
+// ── RENDER TABLE ─────────────────────────────────────────────
+function renderTable() {
+  const users = getFiltered();
+  document.getElementById('userCount').textContent = users.length + ' usuarios';
+
+  if (!users.length) {
+    document.getElementById('tableContent').innerHTML = '<div class="empty">No hay usuarios que mostrar</div>';
+    return;
+  }
+
+  const rows = users.map(u => {
+    const pct = Math.min(100, (u.mds / 6) * 100);
+    const walletDisplay = u.wallet
+      ? `<span class="td-wallet registered" title="${u.wallet}">${u.wallet.slice(0,6)}...${u.wallet.slice(-4)}</span>`
+      : `<span class="td-wallet">—</span>`;
+    const badge = u.mds >= 5
+      ? '<span class="badge badge-ready">LISTO</span>'
+      : u.mds > 0
+        ? '<span class="badge badge-pending">EN PROGRESO</span>'
+        : '<span class="badge badge-new">NUEVO</span>';
+    const date = u.updatedAt
+      ? new Date(u.updatedAt).toLocaleDateString('es-MX', {day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'})
+      : u.lastReset || '—';
+    const lvlClicker  = u.games.clicker?.level || 1;
+    const lvlGoldrush = u.games.goldrush?.level || 1;
+    const lvlPuzzle   = u.games.puzzle?.level || 1;
+    const lvlSpin     = u.games.spin?.level || 1;
+
+    return `<tr>
+      <td class="td-email" title="${u.uid}" style="font-size:0.7rem">${u.uid.slice(0,8)}...</td>
+      <td>
+        <div class="mds-bar-wrap">
+          <span class="td-mds">${u.mds.toFixed(4)}</span>
+          <div class="mds-bar"><div class="mds-bar-fill" style="width:${pct}%"></div></div>
+        </div>
+      </td>
+      <td class="td-levels">${u.totalLevels}</td>
+      <td style="font-size:0.68rem;color:var(--text2)">⚡${lvlClicker} 💰${lvlGoldrush} 🃏${lvlPuzzle} 🎰${lvlSpin}</td>
+      <td class="td-points">${u.points.toLocaleString()}</td>
+      <td>${walletDisplay}</td>
+      <td>${badge}</td>
+      <td class="td-date">${date}</td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('tableContent').innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>UID</th>
+          <th>MDS Acumulados</th>
+          <th>Niveles</th>
+          <th>Por Juego</th>
+          <th>Puntos</th>
+          <th>Wallet BEP-20</th>
+          <th>Estado</th>
+          <th>Última Actividad</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ── EXPORT CSV ────────────────────────────────────────────────
+function exportCSV() {
+  const users = getFiltered();
+  const header = 'UID,MDS,Niveles,Puntos,Wallet,Estado,UltimaActividad';
+  const rows = users.map(u =>
+    `${u.uid},${u.mds.toFixed(4)},${u.totalLevels},${u.points},${u.wallet||''},${u.mds>=5?'LISTO':u.mds>0?'EN_PROGRESO':'NUEVO'},${u.updatedAt||u.lastReset||''}`
+  );
+  const csv = [header, ...rows].join('\n');
+  const blob = new Blob([csv], { type: 'text/csv' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = 'playmidas_usuarios_' + new Date().toISOString().slice(0,10) + '.csv';
+  a.click();
+  showToast('CSV exportado ✓', 'success');
+}
+
+// ── TOAST ─────────────────────────────────────────────────────
+function showToast(msg, type='') {
+  const old = document.querySelector('.toast');
+  if (old) old.remove();
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 2800);
+}
+
+// Enter key on login
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && document.getElementById('loginScreen').style.display !== 'none') {
+    adminLogin();
+  }
+});
+</script>
+</body>
+</html>
